@@ -1,0 +1,69 @@
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+.signup, .signup>div, .login{
+    min-height: calc(100vh - 75px);
+}
+#hide_eye,#hide_eye1,#hide_eye2{
+    display: none;
+}
+.signup form>div, .login form>div{
+    display:flex ;
+    flex-direction: column;
+}
+.input{
+    margin: 5px 0px;
+    border-radius: 5px;
+    border: 1px solid grey;
+    height: 35px;
+    padding-left: 10px;
+}
+.input:focus{
+    outline: none;
+}
+.signup button,.login button{
+    height: 35px;
+    border-radius: 5px;
+    background-color: #128c7e;
+    color: white;
+    font-weight: 600;
+}
+.seperator{
+    position: relative;
+    justify-content: space-around;
+    text-align: center;
+    color: grey;
+}
+.seperator::after,.seperator::before{
+    position: absolute;
+    content: "";
+    width: 40%;
+    height: 50%;
+    border-bottom: 1px solid grey;
+}
+.seperator::after{
+    right: 55%;
+}
+.seperator::before{
+    left: 55%;
+}
+.oauth{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-radius: 5px;
+    border: 1px solid grey;
+    min-height: 35px;
+    width: 50%;
+}
+
+@media (max-width:756px) {
+    .oauth{
+        width: 100%;
+    }
+}
+@media (min-width:756px) {
+    
+}

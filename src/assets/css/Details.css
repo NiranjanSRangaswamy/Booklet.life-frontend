@@ -1,0 +1,59 @@
+*{
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+.cont{
+    background-color: #128c7e;
+  }
+  .section{
+      border-radius: 20px;
+    border: 10px solid #41A398;
+    background-color: white;
+
+  }
+  .sectionTop{
+      background-color: white;
+      border: none;
+      border-bottom: 1px solid #41A398;
+      height: 15vh;
+  }
+  .baton{
+      border-radius: 7px;
+  }
+  .icon{
+      width: 60px;
+      height: 60px;
+      background-color: #128C7E;
+      border-radius: 8px;
+  }
+  .logo{
+      color:white;
+      font-size: 25px
+      
+  }
+  .logoHeading{
+      line-height: 0px;
+  }
+  .secCards{
+      width: 100%;
+      background-color: white;
+      justify-content: space-evenly;
+
+  }
+ 
+  .card1{
+    background-color:white;
+    border: 1px solid #128C7E;
+    border-radius: 10px;
+    color:#128C7E;
+
+  }
+  .userTimeDetails{
+      background-color: #E9FFE4;
+      border-radius: 12px;
+  }
+  .kolum{
+      border: 1px solid #128C7E;
+      border-radius: 10px;
+  }

@@ -1,0 +1,94 @@
+    *{
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    }
+
+
+.parent {
+    background-color: #128c7e;
+    height: auto;
+  }
+  .hr1 {
+    background-color: whitesmoke;
+  }
+  .table1{
+      width:66%;
+      margin: 0 auto;
+      border-radius: 25px;
+      background-color: white;
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      border: 10px solid #41A398;
+      padding: 30px;
+  }
+  .headingdiv{
+      width: 100%;
+      height: 8%;
+  }
+  .heading{
+      font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 36px;
+  color: #000000;
+  }
+  .searchdiv{
+      width: 90%;
+      height: 52px;
+      background: #F1F1F1;
+      border-radius: 5px;
+  }
+  .input1{
+      width: 100%;
+      height: 52px;
+      border:0 solid;
+      background: #F1F1F1;
+  }
+  .table{
+      height: auto;
+      background-color: #F2F2F2;
+     
+  }
+     
+  .smallpara{
+      font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 0px;
+  color: #858585;
+  }
+  
+  @media only screen and (max-width:700px) {
+      .table1{
+          width:100%;
+          border-radius: 0%;
+          height: auto;
+          border: none;
+          margin: 0%;
+          padding: 0%;
+          background-color: rgb(118, 255, 6);
+      }
+      .table{
+          padding: 0%;
+          width: 100%;
+          margin: 0%;
+          background-color: red;
+          font-size:small;
+      }
+      
+  }
+  
+  @media only screen and (max-width:400px) {
+      .table1{
+          background-color: rgb(133, 6, 69);
+      }
+      .table{
+          background-color: rgb(182, 12, 21);
+          font-size:x-small;
+      }
+      
+  }
