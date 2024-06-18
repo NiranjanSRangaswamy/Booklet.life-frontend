@@ -1,14 +1,14 @@
-import React,{ useEffect, useState } from "react";
+import React,{ useContext, useEffect, useState } from "react";
 import Navbar from "./Navbar.jsx"
 import JSZip from "jszip";
 import { parseString } from "whatsapp-chat-parser";
-
+import {Chat} from '../utils/transformChatData.js'
 import { useNavigate } from "react-router-dom";
-
+import UserContext from '../utils/UserContext.js';
 
 
 const Home = (props) => {
-
+  const {chat,setChat} = useContext(UserContext)
   const [file,setFile] = useState(null)
   const [totalAnalyzed,setTotalAnalyzed] = useState(12345)
   const [totalUser,setTotalUser] = useState(12345)
@@ -73,7 +73,7 @@ const Home = (props) => {
       object.absolute_id = index;
       object.personal_id = authors[object.author];
     });
-    console.log(authors)
+    newMessages(chatObject)
   };
 
   const getChatFile = async (zipData) => {
@@ -84,9 +84,15 @@ const Home = (props) => {
       .sort((a, b) => a.name.length - b.name.length)[0]
       .async("string");
   };
-  
- 
 
+  function newMessages(chatObject){
+    if (!chatObject.default || this.chat === undefined) {
+      const data = new Chat(chatObject)
+      setChat(data)
+    }
+  }
+
+  
   return (
     <section id="home" className="home w-full">
       <Navbar />

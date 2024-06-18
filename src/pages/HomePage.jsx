@@ -6,13 +6,7 @@ import About from "../components/About"
 import Footer from "../components/Footer"
 
 const HomePage = () => {
-  const [chatData, setChatData] = useState(null)
-  const [chatObject,setChatObject] = useState(null)
-  let [authors,setAuthors] = useState(null)
-  const [attachments, setAttachments] = useState(null)
-  const [ego,setEgo] = useState(null)
-
-
+ 
   return (
     <>
       <Home  />

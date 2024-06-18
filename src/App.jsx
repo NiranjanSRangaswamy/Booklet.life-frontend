@@ -4,27 +4,23 @@ import ContactPage from "./pages/ContactPage"
 import SignupPage from "./pages/SignupPage"
 import LoginPage from './pages/LoginPage.jsx'
 import { useEffect, useState } from "react"
+import UserContext from './utils/UserContext.js';
+import AnalyticsPage from "./pages/AnalyticsPage.jsx"
 
 const App = () => {
-  const [chatObject,setChatObject] = useState(null)
-
-  const getChatObject=(chatObject)=>{
-    setChatObject(chatObject)
-  }
-  useEffect(()=>{
-    if(chatObject){
-      console.log(chatObject)
-    }
-  },[chatObject])
+  const [chat,setChat] = useState(null)
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/"  Component={HomePage} hanldeChatObject={getChatObject} />
-        <Route path="/contact" Component={ContactPage}/>
-        <Route path="/signup" Component={SignupPage}/>
-        <Route path="/login" Component={LoginPage}/>
-      </Routes>
+        <UserContext.Provider value={{ chat, setChat }}>
+          <Routes>
+              <Route path="/"  Component={HomePage} />
+              <Route path="/contact" Component={ContactPage}/>
+              <Route path="/signup" Component={SignupPage}/>
+              <Route path="/login" Component={LoginPage}/>
+              <Route path="/chart" Component={AnalyticsPage}/>
+          </Routes>
+        </UserContext.Provider>
     </BrowserRouter>
   )
 }

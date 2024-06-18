@@ -5,88 +5,10 @@ import { onlyEmoji } from "emoji-aware";
 import moment from "moment";
 
 export class Chat {
-  constructor(chatObject = [], groupAfter = 9, maxWordsWordCloud = 150) {
-    this.chatObject = chatObject.messages;
-    this._groupAfter = groupAfter;
-    this._maxWordsWordCloud = maxWordsWordCloud;
-
-    this.filterdChatObject = Chat.removeSystemMessages(this.chatObject);
-    this.attachments = Chat.getAttachments(chatObject.attachments)
-
-    
-
-    const messagesTemp = Object.entries(
-      Chat.getMessagesPerPerson(this.filterdChatObject)
-    );
-
-    this.numPersonsInChat = messagesTemp.length;
-    this.personColorMap = {};
-    messagesTemp.forEach((item, idx) => {
-      this.personColorMap[item[0]] = chatColors[idx % chatColors.length];
-    });
-
-    // frequencies for all words in chat (excluding system)
-    this._sortedFreqList = null;
-    // here we have the messages per person, also adding colors to them
-    this._messagesPerPerson = null;
-
-    // all dates of messages
-    this._dates = null;
-
-    this.__reload();
-    this.Statistics = Chat.getStatistics(this.filterdChatObject,this.numPersonsInChat)
-  }
-
-
-  static getAttachments(attachments){
-    let media = {
-      images:0,
-      audio:0,
-      video:0,
-      documents:0
-    }
-
-    let imageTypes = ['jpg','jpeg','png','gif','svg','webp']
-    let videoTypes = ['mp4', 'avi', 'mkv','webm', '3gp', 'mpeg']
-    let audioTypes = ['mp3', 'aac', 'wav','ogg','m4a','opus']
-
-    let fileNames =  attachments.reduce((names,file)=>{
-      names.push(file.name)
-      return names
-    },[])
-
-    let fileExt = fileNames.map((name)=>{
-      let temp = name.split('.')
-      if(temp.length>1){
-        return temp.at(-1).toLowerCase()
-      }
-    })
-
-    fileExt.forEach((ext)=>{
-      if(!ext){
-        return
-      }
-      else if(imageTypes.includes(ext)){
-        media.images++
-      }
-      else if(audioTypes.includes(ext)){
-        media.audio++
-      }
-      else if(videoTypes.includes(ext)){
-        media.video++
-      }
-      else{
-        media.documents++
-      }
-    })
-
-    return media
-  }
-
   static removeSystemMessages(chatObject) {
     // remove the first message with slice ("this chat is encrypted") and all system messages via the filter.
     return chatObject
-      .filter((message) => message.author !== "system" && message.message !== 'null' && message.message !=='<Media omitted>' )
+      .filter((message) => message.author !== "system")
       .slice(1);
   }
 
@@ -187,52 +109,38 @@ export class Chat {
     });
     return hours;
   }
-  
-  static getStatistics(chatObject,numPersonsInChat){
-    const months = ['January', 'Febrajury', 'March','April','May', 'June', 'July', 'August', 'September', 'October','November','December']
-    const users = Chat.getMessagesPerPerson(chatObject)
-    const monthlyData = Chat.weeklyDataFromChat(chatObject);
-    const findKeyOfLongestArray = (obj) => {
-      let longestKey = null;
-      let longestLength = 0;
-      
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          const array = obj[key];
-          if (Array.isArray(array) && array.length > longestLength) {
-            longestLength = array.length;
-            longestKey = key;
-          }
-        }
-      }
-      
-      return longestKey;
-    };
-    
-    const totalmessages = chatObject.length
-    const firstMessage = chatObject[0].date;
-    const lastMessage = chatObject.at(-1).date;
-    const duration = lastMessage - firstMessage;
-    const mostActiveMonth = months[monthlyData.indexOf((Math.max(...monthlyData)))];
-    const mostActiveUser = findKeyOfLongestArray(users);;
-    const totalParticipants = numPersonsInChat;
-    const averageMessagePerUser = chatObject.length/numPersonsInChat;
-    const messagesPerDay = Math.round((totalmessages/(duration/(1000*60*60*24)))*10)/10;
-    const messagePerMonth =Math.round((totalmessages/(duration/(1000*60*60*24*30)))*10)/10;
-    
-    return {
-      totalmessages,
-      firstMessage,
-      lastMessage,
-      mostActiveMonth,
-      mostActiveUser,
-      totalParticipants,
-      averageMessagePerUser,
-      messagesPerDay,
-      messagePerMonth,
-    }
-  }
 
+  constructor(chatObject = [], groupAfter = 9, maxWordsWordCloud = 150) {
+    // this one is the complete input
+    this.chatObject = chatObject;
+
+    // for groupmessages we probably want to group after some time
+    this._groupAfter = groupAfter;
+    // max number of words shown in word cloud
+    this._maxWordsWordCloud = maxWordsWordCloud;
+    // here we remove messages (i.e. system messages)
+    this.filterdChatObject = Chat.removeSystemMessages(this.chatObject);
+    //number of persons in chat
+    const messagesTemp = Object.entries(
+      Chat.getMessagesPerPerson(this.filterdChatObject)
+    );
+    this.numPersonsInChat = messagesTemp.length;
+    // All persons
+    this.personColorMap = {};
+    messagesTemp.forEach((item, idx) => {
+      this.personColorMap[item[0]] = chatColors[idx % chatColors.length];
+    });
+
+    // frequencies for all words in chat (excluding system)
+    this._sortedFreqList = null;
+    // here we have the messages per person, also adding colors to them
+    this._messagesPerPerson = null;
+
+    // all dates of messages
+    this._dates = null;
+
+    this.__reload();
+  }
 
   __reload() {
     this._lineGraphData = Promise.resolve(this._getLineGraphData());
@@ -337,7 +245,6 @@ export class Chat {
   _getFunFacts() {
     let people = this.messagesPerPerson.map((person) => {
       let name = person.name;
-      let numberOfMessage = person.messages.length
       let numberOfWords = Chat.getTotalNumberOfWords(person.messages);
       let longestMessage = Chat.get_longest_message(person.messages);
       let personalFreqDic = Chat.createSortedFreqDict(person.messages);
@@ -347,12 +254,11 @@ export class Chat {
       let averageMessageLength = numberOfWords / person.messages.length;
       return {
         color: person.color,
-        name,
-        numberOfMessage,
-        numberOfWords,
-        longestMessage,
-        uniqueWords,
-        sortedEmojis,
+        name: name,
+        numberOfWords: numberOfWords,
+        longestMessage: longestMessage,
+        uniqueWords: uniqueWords,
+        sortedEmojis: sortedEmojis,
         averageMessageLength: Math.round(averageMessageLength),
       };
     });
@@ -360,6 +266,7 @@ export class Chat {
   }
 
   getFunFacts() {
+    console.log(this._funfacts)
     return this._funfacts;
   }
 

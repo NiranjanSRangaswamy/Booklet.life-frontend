@@ -11,7 +11,7 @@ const About = () => {
         <button className=" mx-auto md:mx-20 rounded-sm py-1 px-2 text-white"><a href="#home">Analyze Now</a></button>
       </div>
       <div id="video" className="md:w-1/2  flex items-center justify-center flex-col w-full">
-        <iframe  className="md:w-3/5 w-11/12 my-5"  src="https://www.youtube.com/embed/-iQFSz_5dSw" title="Fiverr.com Video Editing Gig Sample 2022" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+        
       </div>
       </div>
     </section>
