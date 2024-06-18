@@ -11,7 +11,8 @@ export class Chat {
     this._maxWordsWordCloud = maxWordsWordCloud;
 
     this.filterdChatObject = Chat.removeSystemMessages(this.chatObject);
-    this.attachments = Chat.getAttachments(chatObject.attachments)
+    this.totalmessages = this.filterdChatObject.length
+    this.attachments = Chat.getAttachments(chatObject.attachments, this.totalmessages)
 
     
 
@@ -38,8 +39,9 @@ export class Chat {
   }
 
 
-  static getAttachments(attachments){
+  static getAttachments(attachments, totalmessages){
     let media = {
+      totalmessages,
       images:0,
       audio:0,
       video:0,
@@ -235,13 +237,13 @@ export class Chat {
 
 
   __reload() {
-    this._lineGraphData = Promise.resolve(this._getLineGraphData());
-    this._funfacts = Promise.resolve(this._getFunFacts());
-    this._allWords = Promise.resolve(this._getAllWords());
-    this._hourlyData = Promise.resolve(this._getHourlyData());
-    this._dailyData = Promise.resolve(this._getDailyData());
-    this._weeklyData = Promise.resolve(this._getWeeklyData());
-    this._shareOfSpeech = Promise.resolve(this._getShareOfSpeech());
+    this._lineGraphData = this._getLineGraphData();
+    this._funfacts = this._getFunFacts();
+    this._allWords = this._getAllWords();
+    this._hourlyData = this._getHourlyData();
+    this._dailyData = this._getDailyData();
+    this._weeklyData = this._getWeeklyData();
+    this._shareOfSpeech = this._getShareOfSpeech();
   }
 
   get sortedFreqDict() {
@@ -264,13 +266,13 @@ export class Chat {
     this._groupAfter = groupAfter;
     this._messagesPerPerson = null;
 
-    this._lineGraphData = Promise.resolve(this._getLineGraphData());
-    this._funfacts = Promise.resolve(this._getFunFacts());
-    // this._allWords = Promise.resolve(this._getAllWords());
-    this._hourlyData = Promise.resolve(this._getHourlyData());
-    this._dailyData = Promise.resolve(this._getDailyData());
-    this._weeklyData = Promise.resolve(this._getWeeklyData());
-    this._shareOfSpeech = Promise.resolve(this._getShareOfSpeech());
+    this._lineGraphData = this._getLineGraphData();
+    this._funfacts = this._getFunFacts();
+    this._allWords = this._getAllWords();
+    this._hourlyData = this._getHourlyData();
+    this._dailyData = this._getDailyData();
+    this._weeklyData = this._getWeeklyData();
+    this._shareOfSpeech = this._getShareOfSpeech();
   }
 
   _getMessagesPerPerson() {
