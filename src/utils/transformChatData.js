@@ -88,7 +88,7 @@ export class Chat {
   static removeSystemMessages(chatObject) {
     // remove the first message with slice ("this chat is encrypted") and all system messages via the filter.
     return chatObject
-      .filter((message) => message.author !== "system" && message.message !== 'null' && message.message !=='<Media omitted>' )
+      .filter((message) => message.author !== "system" && message.author !== "null" && message.message !== 'null' && message.message !=='<Media omitted>' )
       .slice(1);
   }
 
@@ -211,18 +211,29 @@ export class Chat {
       return longestKey;
     };
     
+    function getDates(date){
+      const year = date.getFullYear()
+      const months = ['January', 'February', 'March','April','May', 'June', 'July', 'August', 'September', 'October','November','December']
+      const month = months[date.getMonth()]
+      const day = date.getDate()
+      return `${day} ${month} ${year}`
+    }
+    
     const totalmessages = chatObject.length
-    const firstMessage = chatObject[0].date;
-    const lastMessage = chatObject.at(-1).date;
-    const duration = lastMessage - firstMessage;
+    const firstMessage = getDates(chatObject[0].date);
+    const lastMessage = getDates(chatObject.at(-1).date);
+    const noOfDays = (chatObject.at(-1).date - chatObject[0].date)/(1000*60*60*24);
     const mostActiveMonth = months[monthlyData.indexOf((Math.max(...monthlyData)))];
     const mostActiveUser = findKeyOfLongestArray(users);;
     const totalParticipants = numPersonsInChat;
-    const averageMessagePerUser = chatObject.length/numPersonsInChat;
-    const messagesPerDay = Math.round((totalmessages/(duration/(1000*60*60*24)))*10)/10;
-    const messagePerMonth =Math.round((totalmessages/(duration/(1000*60*60*24*30)))*10)/10;
+    const averageMessagePerUser = Math.round((chatObject.length/numPersonsInChat)*100)/100;
+    const messagesPerDay = Math.round((totalmessages/noOfDays)*100)/100;
+    const messagePerMonth =Math.round((totalmessages/(noOfDays/30))*100)/100;
     
     return {
+      months,
+      monthlyData,
+      noOfDays: Math.ceil(noOfDays),
       totalmessages,
       firstMessage,
       lastMessage,

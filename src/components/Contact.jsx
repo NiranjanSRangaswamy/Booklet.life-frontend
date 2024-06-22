@@ -9,7 +9,7 @@ import React, { useState, ChangeEvent } from "react";
 
 
 const Contact = () => {
-  const [contactData, setContactData] = useState<ContactData>({
+  const [contactData, setContactData] = useState({
     name: "",
     email: "",
     phone: null,

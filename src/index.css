@@ -197,7 +197,7 @@
   min-height: calc(100dvh - 75px);
 }
 .contact .container .form-out {
-  border: 5px solid rgba(255, 255, 255, 0.4);
+  border: 5px solid #41A398;
   background-color: white;
   border-radius: 20px;
   min-height: 100%;

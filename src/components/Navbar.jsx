@@ -24,7 +24,7 @@ const settings= [
 
 function Navbar() {
 
-  const [isLoggedIn, setIsLoggedIn] =useState(false);
+  const [isLoggedIn, setIsLoggedIn] =useState(true);
 
 
 
