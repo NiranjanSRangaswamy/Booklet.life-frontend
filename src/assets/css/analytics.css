@@ -1,11 +1,26 @@
-.analytics{
+:root {
+  --light-mode: #f5f5dc;
+  --dark-mode: #09141a;
+  --dark-green: #134d37;
+  --dark-grey: #1F2C34;
+  --darker-grey:#1a2027;
+  --darker-green:#134333;
+  /* --light-green: #d5f3cf; */
+  --light-green: #D9FDD3;
+  --lighter-green: #bff7b5;
+  --light-others:#e9e7e4;
+  --lighter-others: #f0f0f0;
+  
+}
+
+.analytics {
   background-color: #128c7e;
 }
-.analytics .content{
+.analytics .content {
   border-radius: 10px;
-  border: 5px solid #41A398;
+  border: 5px solid #41a398;
 }
-.analytics .container .attachments > div{
+.analytics .container .attachments > div {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -14,43 +29,43 @@
   border: 1px solid #128c7e;
   border-radius: 10px;
 }
-.analytics .container .attachments > div h1{
+.analytics .container .attachments > div h1 {
   color: #128c7e;
   font-weight: 600;
   font-size: 35px;
 }
-.analytics .container .attachments > div p{
+.analytics .container .attachments > div p {
   font-size: medium;
   color: rgb(97, 97, 97);
 }
-.analytics .container .statistics > div{
+.analytics .container .statistics > div {
   background-color: rgba(18, 180, 126, 0.2);
   display: grid;
   gap: 10px;
-  grid-template-columns: 1fr  1fr ;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   grid-auto-flow: row;
 }
-.analytics .container .statistics > div p{
+.analytics .container .statistics > div p {
   font-size: smaller;
   color: rgb(97, 97, 97);
 }
-.analytics .container .statistics > div h1{
+.analytics .container .statistics > div h1 {
   color: #128c7e;
   font-weight: 500;
-  font-size:medium;
+  font-size: medium;
 }
 
-.analytics .container .funfacts{
-  padding-bottom:40px ;
-  border-bottom: 1px solid  rgb(97, 97, 97);
+.analytics .container .funfacts {
+  padding-bottom: 40px;
+  border-bottom: 1px solid rgb(97, 97, 97);
 }
 
-.analytics .container .funfacts .user{
+.analytics .container .funfacts .user {
   border: 1px solid #128c7e;
   border-radius: 5px;
 }
-.analytics .container .funfacts .user h1{
+.analytics .container .funfacts .user h1 {
   margin: auto;
   width: 90%;
   padding: 10px 0;
@@ -59,36 +74,186 @@
   text-align: center;
   border-bottom: 1px solid #128c7e;
 }
-.analytics .container .funfacts .user div{
+.analytics .container .funfacts .user div {
   display: flex;
   justify-content: space-between;
   gap: 30px;
-  padding:5px 10px;
+  padding: 5px 10px;
 }
-.analytics .container .funfacts .user div p{
+.analytics .container .funfacts .user div p {
   color: rgb(97, 97, 97);
 }
-.chart .chart-stats h1{
+.chart .chart-stats h1 {
   color: #128c7e;
   font-weight: 600;
   font-size: x-large;
   text-align: center;
 }
-.chart .chart-stats p{
+.chart .chart-stats p {
   color: rgb(97, 97, 97);
   font-weight: 500;
   text-align: center;
 }
+.preview {
+  overflow: hidden;
+}
+.preview .header {
+  background-color: #128c7e;
+}
+.preview .header select:focus {
+  outline: none;
+}
+.chat-display.dark {
+  background-image: url("/src/assets/dark-bg.png");
+  background-color: var(--dark-mode);
+  color: white;
+  overflow-y: scroll;
+}
+.chat-display.light {
+  background-image: url("/src/assets/light-bg.png");
+  background-color: var(--light-mode);
+  color: black;
+  overflow-y: scroll;
+}
+
+.chat-display.dark .author {
+  background-color: var(--dark-green);
+  max-width: 400px;
+  border-radius: 10px;
+  margin: 10px 10px 10px 0;
+  padding: 5px;
+}
+.chat-display.dark .others {
+  background-color: var(--dark-grey);
+  width: fit-content;
+  max-width: 400px;
+  border-radius: 10px;
+  margin: 10px 0 10px 10px;
+  padding: 5px;
+}
+.chat-display.light .author {
+  background-color: var(--light-green);
+  max-width: 400px;
+  border-radius: 10px;
+  margin: 10px 10px 10px 0;
+  padding: 5px;
+}
+.chat-display.light .others {
+  max-width: 400px;
+  background-color: var(--lighter-others);
+  border-radius: 10px;
+  margin: 10px 0 10px 10px;
+  padding: 5px;
+}
+.chat-display.light .system .others,
+.chat-display.dark .system .others{
+  font-size: small;
+  max-width: 80%;
+  text-align: center;
+}
+.chat-display.light .system ,
+.chat-display.dark .system {
+ width: 100%;
+}
+.chat-display.light .system .time,
+.chat-display.dark .system .time{
+  display: none;
+}
+.chat-display.dark .author p,
+.chat-display.light .author p,
+.chat-display.dark .others p,
+.chat-display.light .others p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* .chat-display.dark .author,
+.chat-display.dark .others {
+  background-color: var(--dark-green);
+  position: relative;
+  max-width: 400px;
+  margin: 10px 0;
+  right: 10px;
+  border-radius: 10px;
+  padding: 10px;
+} */
+
+.chat-display.dark .author p,
+.chat-display.dark .others p {
+  text-wrap: wrap;
+}
+
+.thumbnail {
+  max-width: 400px;/* Adjust as needed */
+  max-height: 400px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.document-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.document-preview img {
+  width: 50px; /* Adjust as needed */
+  height: auto;
+  margin-bottom: 8px;
+}
+
+.document-preview p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.chat-display.dark .author .document-bubble{
+background-color: var(--darker-green);
+}
+.chat-display.dark .others .document-bubble{
+background-color: var(--darker-grey);
+}
+.chat-display.light .others .document-bubble{
+  background-color: var(--light-others);
+}
+.chat-display.light .author .document-bubble{
+  background-color: var(--lighter-green);
+}
+
 @media (max-width: 768px) {
-  .analytics .container .statistics > div{
+  .analytics .container .statistics > div {
     width: 85%;
     display: flex;
     flex-direction: column;
   }
-  .analytics .container .funfacts > div{
+  .analytics .container .funfacts > div {
     width: 85%;
   }
-  .chart .bar-chart{
+  .chart .bar-chart {
     height: 400px;
+  }
+  .preview .header select {
+    width: 90%;
+  }
+  
+}
+@media (max-width : 640px){
+  .chat-display.dark .author,
+  .chat-display.light .author,
+  .chat-display.dark .others,
+  .chat-display.light .others{
+    max-width: 90%;
+  }
+  .thumbnail{
+    max-width: 65vw;
+    min-width: 55vw;
+    max-height: 320px;
+    object-fit: cover;
+  }
+  .chat-display.light .system .others,
+  .chat-display.dark .system .others{
+    max-width: 70vw;
   }
 }

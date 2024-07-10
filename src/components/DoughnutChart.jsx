@@ -24,7 +24,26 @@ const DoughnutChart = ({ data }) => {
         position: 'right',
         labels: {
           usePointStyle: true,
+          padding: 10,
+          generateLabels: (chart) => {
+            const data = chart.data;
+            return data.labels.map((label, i) => {
+              const value = data.datasets[0].data[i];
+              return {
+                text: `${label}: ${value}`, // Customize legend text
+                fillStyle: data.datasets[0].backgroundColor[i],
+                strokeStyle: data.datasets[0].borderColor[i],
+                lineWidth: data.datasets[0].borderWidth,
+              };
+            });}
         },
+      },
+      title: {
+        display: true,
+        text: 'Messages from each user', // Add your title here
+        font: {
+          size: 20
+        }
       },
       tooltip: {
         callbacks: {

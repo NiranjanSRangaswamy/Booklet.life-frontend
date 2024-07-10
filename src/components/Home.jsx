@@ -58,6 +58,7 @@ const Home = (props) => {
   
   const txtLoadEndHandler = (e) => {
     const messages = parseString(e.target.result);
+    console.log(messages)
     updateMessages({ messages: messages });
   };
 
@@ -98,8 +99,8 @@ const Home = (props) => {
       <Navbar />
       <div className="container  flex-col justify-center items-center gap-1  md:w-2/4">
         <h1 className="text-3xl font-semibold sm:text-4xl w-max my-3">Whatsapp Chat Analyzer</h1>
-        <p className="text-center leading-tight my-1 md:text-sm">Relive Your Conversations: Convert WhatsApp Chats to Stunning PDFs</p>
-        <p className="text-center leading-tight my-1 md:text-sm">Transform your WhatsApp chats into beautifully formatted PDFs or printed keepsakes with our easy-to-use chat analyzer.</p>
+        <p className="text-center leading-tight my-1 md:text-md">Relive Your Conversations: Convert WhatsApp Chats to Stunning PDFs</p>
+        <p className="text-center leading-tight my-1 md:text-md">Transform your WhatsApp chats into beautifully formatted PDFs or printed keepsakes with our easy-to-use chat analyzer.</p>
         <form className="file-input w-full md:w-96 flex items-center" onSubmit={handleSubmit}>
           {file?<label htmlFor="file" className=" bg-white w-full h-full flex items-center pl-3 text-md md:text-sm  text-gray-500">{file.name} selected</label>:<label htmlFor="file" className=" bg-white w-full h-full flex items-center pl-3 text-md md:text-sm  text-gray-500">Select .txt or .zip file</label>}
           <input type="file" name="file" id="file" accept=".txt , .zip" className=" hidden" onChange={handleFileChange}/>

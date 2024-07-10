@@ -1,63 +1,74 @@
-import React,{useEffect,useContext, useState} from 'react'
-import Navbar from './Navbar'
-import UserContext from '../utils/UserContext.js';
+import React, { useEffect, useContext, useState } from "react";
+import Navbar from "./Navbar";
+import UserContext from "../utils/UserContext.js";
 
-import ChartComponent from './ChartComponent.jsx';
-
+import ChartComponent from "./ChartComponent.jsx";
+import ChatDisplay from "./ChatDisplay.jsx";
 
 const Analytics = () => {
+  const { chat, setChat } = useContext(UserContext);
+  const [statistics, setStatistics] = useState(null);
+  const [media, setMedia] = useState(null);
+  const [funfacts, setFunfacts] = useState(null);
+  const [ego, setEgo] = useState(null);
+  const [color, setColor] = useState(null);
+  const [mode, setMode] = useState("dark");
+  const [attachments, setAttachments] = useState(null);
 
-  const {chat,setChat} = useContext(UserContext);
-  const [statistics,setStatistics] = useState(null);
-  const [attachments, setAttachments] = useState(null)
-  const [funfacts,setFunfacts] = useState(null)
-  const [data,setdata] = useState({
-    labels: ['First User Name', 'Second User Name', 'Third User Name'],
-    values: [57.63, 42.37, 30.00], // example values
-  })
-
-  useEffect(()=>{
-    if(chat){
-      setStatistics(chat.Statistics)
-      setAttachments(chat.attachments)
-      setFunfacts(chat.getFunFacts())
+  useEffect(() => {
+    if (chat) {
+      console.log(chat);
+      setStatistics(chat.Statistics);
+      setMedia(chat.media["media"]);
+      setAttachments(chat.media["attachments"]);
+      setFunfacts(chat.getFunFacts());
+      setColor(chat.personColorMap);
     }
-  },[chat])
-  
+    if (funfacts) {
+      setEgo(funfacts[0].name);
+    }
+  }, [chat, funfacts]);
+  const handleEgoChange = (e) => {
+    setEgo(e.target.value);
+  };
+  const handleColorchange = (e) => {
+    setMode(e.target.value);
+  };
+
   return (
-    <section className='analytics min-h-screen w-full ' id='analytics'>
-      <Navbar/>
-      <div className='container w-full flex justify-center'>
-        <div className='content bg-white min-h-screen w-full flex flex-col  md:my-10 md:w-5/6 rounded-lg md:rounded-xl'>
-          <div className='attachments flex justify-evenly md:justify-center gap-5 my-10 flex-wrap '>
+    <section className="analytics min-h-screen w-full " id="analytics">
+      <Navbar />
+      <div className="container w-full flex justify-center">
+        <div className="content bg-white min-h-screen w-full flex flex-col  md:my-10 md:w-3/4 rounded-lg md:rounded-xl">
+          <div className="attachments flex justify-evenly md:justify-center gap-5 my-10 flex-wrap ">
             <div>
-              <h1>{attachments?.totalmessages}</h1>
+              <h1>{media?.totalmessages}</h1>
               <p>Messages</p>
             </div>
             <div>
-              <h1>{attachments?.images}</h1>
+              <h1>{media?.images}</h1>
               <p>Pictures</p>
             </div>
             <div>
-              <h1>{attachments?.video}</h1>
+              <h1>{media?.video}</h1>
               <p>Videos</p>
             </div>
             <div>
-              <h1>{attachments?.audio}</h1>
+              <h1>{media?.audio}</h1>
               <p>Audio</p>
             </div>
             <div>
-              <h1>{attachments?.documents-1}</h1>
+              <h1>{media?.documents}</h1>
               <p>Documents</p>
             </div>
           </div>
-          <div className='statistics w-full flex justify-center  '>
-            <div className='p-5 rounded-md' >
+          <div className="statistics w-full flex justify-center  ">
+            <div className="p-5 rounded-md">
               <div>
                 <p>First Message</p>
                 <h1>{statistics?.firstMessage}</h1>
               </div>
-              <div> 
+              <div>
                 <p>Last Message</p>
                 <h1>{statistics?.lastMessage}</h1>
               </div>
@@ -79,12 +90,12 @@ const Analytics = () => {
               </div>
             </div>
           </div>
-          <div className='funfacts w-11/12 mx-auto flex justify-center my-10'>
-            <div className='flex flex-wrap gap-5'>
-              {
-                funfacts?.map((user,i)=>{
-                  return(
-                    <div key={i} className='user flex flex-grow flex-col'>
+          <div className="funfacts w-11/12 mx-auto flex justify-center my-10">
+            <div className="flex flex-wrap gap-5">
+              {funfacts?.map((user, i) => {
+                if (user.name !== "null") {
+                  return (
+                    <div key={i} className="user flex flex-grow flex-col">
                       <h1>{user.name}</h1>
                       <div>
                         <p>Messages sent</p>
@@ -107,16 +118,43 @@ const Analytics = () => {
                         <h2>{user.uniqueWords}</h2>
                       </div>
                     </div>
-                  )
-                })
-              }
+                  );
+                }
+              })}
             </div>
           </div>
-          <ChartComponent/>
+          <ChartComponent />
+          {funfacts ? (
+            <div className="preview rounded-xl w-11/12 mx-auto my-6 ">
+              <div className=" header  flex flex-col md:flex-row mx-auto justify-between  ">
+                <h1 className="text-white mx-auto text-2xl font-semibold md:ml-6 my-3">Chat Preview</h1>
+                <select
+                  name="ego"
+                  id="ego"
+                  onChange={handleEgoChange}
+                  className="text-gray-700 text-sm bg-whit mx-auto py-1 md:my-3 mb-3 md:mr-6 rounded-md"
+                >
+                  {/* {!ego && <option value="">Change point of view</option>} */}
+                  {funfacts.map((user, index) => {
+                    if (user.name !== "null") {
+                      return (
+                        <option key={index} value={user.name}>
+                          {user.name}
+                        </option>
+                      );
+                    }
+                  })}
+                </select>
+              </div>
+              <ChatDisplay ego={ego} color={color} mode={mode} />
+            </div>
+          ) : (
+            <h1>error</h1>
+          )}
         </div>
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default Analytics
+export default Analytics;

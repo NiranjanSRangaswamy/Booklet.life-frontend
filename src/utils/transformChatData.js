@@ -9,10 +9,9 @@ export class Chat {
     this.chatObject = chatObject.messages;
     this._groupAfter = groupAfter;
     this._maxWordsWordCloud = maxWordsWordCloud;
-
     this.filterdChatObject = Chat.removeSystemMessages(this.chatObject);
     this.totalmessages = this.filterdChatObject.length
-    this.attachments = Chat.getAttachments(chatObject.attachments, this.totalmessages)
+    this.media = Chat.getMediaTypes(chatObject.attachments, this.totalmessages)
 
     
 
@@ -39,7 +38,7 @@ export class Chat {
   }
 
 
-  static getAttachments(attachments, totalmessages){
+  static getMediaTypes(attachments, totalmessages){
     let media = {
       totalmessages,
       images:0,
@@ -52,35 +51,65 @@ export class Chat {
     let videoTypes = ['mp4', 'avi', 'mkv','webm', '3gp', 'mpeg']
     let audioTypes = ['mp3', 'aac', 'wav','ogg','m4a','opus']
 
-    let fileNames =  attachments.reduce((names,file)=>{
-      names.push(file.name)
-      return names
-    },[])
 
-    let fileExt = fileNames.map((name)=>{
-      let temp = name.split('.')
-      if(temp.length>1){
-        return temp.at(-1).toLowerCase()
-      }
-    })
-
-    fileExt.forEach((ext)=>{
+    attachments.forEach((attachment)=>{
+      let temp = attachment.name.split('.');
+      let ext = temp.at(-1).toLowerCase();
       if(!ext){
         return
       }
       else if(imageTypes.includes(ext)){
-        media.images++
+        media.images++;
+        attachment.type = "image/jpeg"
       }
       else if(audioTypes.includes(ext)){
         media.audio++
+        attachment.type = "audio/mpeg"
       }
       else if(videoTypes.includes(ext)){
         media.video++
+        attachment.type = "video/mp4"
       }
       else{
         media.documents++
+        attachment.type = "others"
       }
+      
     })
+
+  return {
+    media,
+    attachments
+  }
+    // let fileNames =  attachments?.reduce((names,file)=>{
+    //   names.push(file.name)
+    //   return names
+    // },[])
+
+    // let fileExt = fileNames?.map((name)=>{
+    //   let temp = name.split('.')
+    //   if(temp.length>1){
+    //     return temp.at(-1).toLowerCase()
+    //   }
+    // })
+
+    // fileExt?.forEach((ext)=>{
+    //   if(!ext){
+    //     return
+    //   }
+    //   else if(imageTypes.includes(ext)){
+    //     media.images++
+    //   }
+    //   else if(audioTypes.includes(ext)){
+    //     media.audio++
+    //   }
+    //   else if(videoTypes.includes(ext)){
+    //     media.video++
+    //   }
+    //   else{
+    //     media.documents++
+    //   }
+    // })
 
     return media
   }
@@ -88,8 +117,8 @@ export class Chat {
   static removeSystemMessages(chatObject) {
     // remove the first message with slice ("this chat is encrypted") and all system messages via the filter.
     return chatObject
-      .filter((message) => message.author !== "system" && message.author !== "null" && message.message !== 'null' && message.message !=='<Media omitted>' )
-      .slice(1);
+      .filter((message) => message.author !== "system" && message.author !== "null" && message.author !== "null\n" && message.message !== 'null' && message.message !=='<Media omitted>' )
+      // .slice(1);
   }
 
   static groupBy(chatObject, key) {
@@ -105,7 +134,6 @@ export class Chat {
       0
     );
   }
-
   // Find hapax legomenons, a word or an expression that occurs only once within the context.
   static uniqueWords(chat_distribution) {
     function singleOccurrence(value) {
@@ -191,9 +219,10 @@ export class Chat {
   }
   
   static getStatistics(chatObject,numPersonsInChat){
-    const months = ['January', 'Febrajury', 'March','April','May', 'June', 'July', 'August', 'September', 'October','November','December']
     const users = Chat.getMessagesPerPerson(chatObject)
     const monthlyData = Chat.weeklyDataFromChat(chatObject);
+    const hourlyData = Chat.hourlyDataFromChat(chatObject)
+    const months = ['January', 'February', 'March','April','May', 'June', 'July', 'August', 'September', 'October','November','December']
     const findKeyOfLongestArray = (obj) => {
       let longestKey = null;
       let longestLength = 0;
@@ -231,7 +260,7 @@ export class Chat {
     const messagePerMonth =Math.round((totalmessages/(noOfDays/30))*100)/100;
     
     return {
-      months,
+      hourlyData,
       monthlyData,
       noOfDays: Math.ceil(noOfDays),
       totalmessages,
@@ -245,7 +274,6 @@ export class Chat {
       messagePerMonth,
     }
   }
-
 
   __reload() {
     this._lineGraphData = this._getLineGraphData();
