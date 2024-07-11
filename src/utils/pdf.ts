@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import * as JSZip from "jszip";
-import logoBlack from '/assets/logo.png';
+import logoBlack from '../assets/logo-white.png';
 // @ts-ignore
 import myFont from './Helvetica.js';
 // @ts-ignore

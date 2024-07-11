@@ -1,26 +1,76 @@
 import React, { useEffect, useContext, useState } from "react";
 import Navbar from "./Navbar";
 import UserContext from "../utils/UserContext.js";
+import { Link } from "react-router-dom";
 
 import ChartComponent from "./ChartComponent.jsx";
 import ChatDisplay from "./ChatDisplay.jsx";
+import { Box, FormControl, Select, MenuItem,Switch} from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+const MaterialUISwitch = styled(Switch)(({ theme }) => ({
+  width: 62,
+  height: 34,
+  padding: 7,
+  '& .MuiSwitch-switchBase': {
+    margin: 1,
+    padding: 0,
+    transform: 'translateX(6px)',
+    '&.Mui-checked': {
+      color: '#fff',
+      transform: 'translateX(22px)',
+      '& .MuiSwitch-thumb:before': {
+        backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path fill="${encodeURIComponent(
+          '#fff',
+        )}" d="M4.2 2.5l-.7 1.8-1.8.7 1.8.7.7 1.8.6-1.8L6.7 5l-1.9-.7-.6-1.8zm15 8.3a6.7 6.7 0 11-6.6-6.6 5.8 5.8 0 006.6 6.6z"/></svg>')`,
+      },
+      '& + .MuiSwitch-track': {
+        opacity: 1,
+        backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
+      },
+    },
+  },
+  '& .MuiSwitch-thumb': {
+    backgroundColor: theme.palette.mode === 'dark' ? '#003892' : '#001e3c',
+    width: 32,
+    height: 32,
+    '&::before': {
+      content: "''",
+      position: 'absolute',
+      width: '100%',
+      height: '100%',
+      left: 0,
+      top: 0,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'center',
+      backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="20" width="20" viewBox="0 0 20 20"><path fill="${encodeURIComponent(
+        '#fff',
+      )}" d="M9.305 1.667V3.75h1.389V1.667h-1.39zm-4.707 1.95l-.982.982L5.09 6.072l.982-.982-1.473-1.473zm10.802 0L13.927 5.09l.982.982 1.473-1.473-.982-.982zM10 5.139a4.872 4.872 0 00-4.862 4.86A4.872 4.872 0 0010 14.862 4.872 4.872 0 0014.86 10 4.872 4.872 0 0010 5.139zm0 1.389A3.462 3.462 0 0113.471 10a3.462 3.462 0 01-3.473 3.472A3.462 3.462 0 016.527 10 3.462 3.462 0 0110 6.528zM1.665 9.305v1.39h2.083v-1.39H1.666zm14.583 0v1.39h2.084v-1.39h-2.084zM5.09 13.928L3.616 15.4l.982.982 1.473-1.473-.982-.982zm9.82 0l-.982.982 1.473 1.473.982-.982-1.473-1.473zM9.305 16.25v2.083h1.389V16.25h-1.39z"/></svg>')`,
+    },
+  },
+  '& .MuiSwitch-track': {
+    opacity: 1,
+    backgroundColor: theme.palette.mode === 'dark' ? '#8796A5' : '#aab4be',
+    borderRadius: 20 / 2,
+  },
+}));
 
 const Analytics = () => {
   const { chat, setChat } = useContext(UserContext);
   const [statistics, setStatistics] = useState(null);
   const [media, setMedia] = useState(null);
   const [funfacts, setFunfacts] = useState(null);
-  const [ego, setEgo] = useState(null);
+  const [ego, setEgo] = useState('');
   const [color, setColor] = useState(null);
-  const [mode, setMode] = useState("dark");
-  const [attachments, setAttachments] = useState(null);
+  const [darkMode, setDarkMode] = useState(true);
+  // const [attachments, setAttachments] = useState(null);
 
   useEffect(() => {
     if (chat) {
       console.log(chat);
       setStatistics(chat.Statistics);
       setMedia(chat.media["media"]);
-      setAttachments(chat.media["attachments"]);
+      // setAttachments(chat.media["attachments"]);
       setFunfacts(chat.getFunFacts());
       setColor(chat.personColorMap);
     }
@@ -31,8 +81,8 @@ const Analytics = () => {
   const handleEgoChange = (e) => {
     setEgo(e.target.value);
   };
-  const handleColorchange = (e) => {
-    setMode(e.target.value);
+  const handleColorChange = (e) => {
+    setDarkMode(e.target.checked);
   };
 
   return (
@@ -126,27 +176,46 @@ const Analytics = () => {
           <ChartComponent />
           {funfacts ? (
             <div className="preview rounded-xl w-11/12 mx-auto my-6 ">
-              <div className=" header  flex flex-col md:flex-row mx-auto justify-between  ">
-                <h1 className="text-white mx-auto text-2xl font-semibold md:ml-6 my-3">Chat Preview</h1>
-                <select
-                  name="ego"
-                  id="ego"
-                  onChange={handleEgoChange}
-                  className="text-gray-700 text-sm bg-whit mx-auto py-1 md:my-3 mb-3 md:mr-6 rounded-md"
-                >
-                  {/* {!ego && <option value="">Change point of view</option>} */}
-                  {funfacts.map((user, index) => {
-                    if (user.name !== "null") {
-                      return (
-                        <option key={index} value={user.name}>
-                          {user.name}
-                        </option>
-                      );
-                    }
-                  })}
-                </select>
+              <div className=" header  flex flex-col md:flex-row mx-auto justify-between  ">               
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <MaterialUISwitch checked={darkMode} onChange={handleColorChange} />
+                </Box>
+                <Box>
+                  <FormControl sx={{ m: 1, minWidth: 120 }} size="small" className="text-gray-700 text-sm bg-whit mx-auto py-1 md:my-3 mb-3 md:mr-6 rounded-md">
+                      <Select
+                        labelId="demo-simple-select-label"
+                        id="demo-simple-select"
+                        value={ego}
+                        label="Change Point of View"
+                        onChange={handleEgoChange}
+                        sx={{
+                          height: '2.5rem', 
+                          fontSize: '0.875rem',
+                          '.MuiOutlinedInput-notchedOutline': { border: 0 }, // Remove border for outlined input
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { border: 0 } // Remove border when focused
+                        }}
+                        className="bg-white"// Custom styles for smaller size
+                      >
+                        {funfacts?.map((user, index) => {
+                          if(user.name !== 'null')
+                            return  <MenuItem value={user.name} key={index}>{user.name}</MenuItem>
+                        })}
+                      </Select>
+                    </FormControl>
+                </Box>
+                
+                  
+               
               </div>
-              <ChatDisplay ego={ego} color={color} mode={mode} />
+              <ChatDisplay ego={ego} color={color} mode={darkMode} />
+                <div className="download w-full flex justify-evenly md:justify-center md:gap-5">
+                  <button className=" my-3  rounded-sm py-1 px-2 text-white">
+                    <Link to="/sample">Download Sample</Link>
+                  </button>
+                  <button className=" my-3   rounded-sm py-1 px-2 text-white">
+                    <Link to="/cart">Get Full PDF</Link>
+                  </button>
+                </div>
             </div>
           ) : (
             <h1>error</h1>

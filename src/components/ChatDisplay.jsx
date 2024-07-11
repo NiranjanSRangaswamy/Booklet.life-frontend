@@ -86,7 +86,7 @@ const ChatDisplay = ({ ego, color, mode}) => {
   };
 
   return (
-    <div className={`chat-display ${mode} h-screen`}>
+    <div className={mode?'chat-display dark h-screen':'chat-display light h-screen'} >
       {sample?.map((message, i) => {
         const cleanedMessage = removeFileAttachedMessage(message.message);
         return (
@@ -97,7 +97,7 @@ const ChatDisplay = ({ ego, color, mode}) => {
             }`}
           >
             <div className={message.author === ego ? "author" : "others"}>
-              {/* <h1 style={{ color: color[message.author] }} className='px-1'>{message.author}</h1> */}
+              <h1 style={{ color: color[message.author] }} className='px-1'>{message.author}</h1>
               {message.attachment && renderAttachment(message)}
               {cleanedMessage ? <p className="px-1 " dangerouslySetInnerHTML={{ __html: parseMessage(cleanedMessage) }} /> : null}
               <p className=" text-xs text-gray-400 text-right time">{getTime(new Date(message.date))}</p>
