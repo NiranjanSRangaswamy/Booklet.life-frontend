@@ -23,7 +23,7 @@ const ChartComponent = () => {
       let color = [];
       let values = [];
       setStatistics(chat.Statistics)
-      chat._funfacts.map((user)=>{
+      chat._funFacts.map((user)=>{
         if(user.name !== 'null'){
           labels.push(user.name);
           color.push(user.color);

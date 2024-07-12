@@ -1,288 +1,172 @@
 import { chatColors, hexToRgbA } from "./colors";
-import stopwords_de from "stopwords-de";
-import stopwords from "stopwords-en";
-import { onlyEmoji } from "emoji-aware";
-import moment from "moment";
 
 export class Chat {
   constructor(chatObject = [], groupAfter = 9, maxWordsWordCloud = 150) {
     this.chatObject = chatObject.messages;
     this._groupAfter = groupAfter;
     this._maxWordsWordCloud = maxWordsWordCloud;
-    this.filterdChatObject = Chat.removeSystemMessages(this.chatObject);
-    this.totalmessages = this.filterdChatObject.length
-    this.media = Chat.getMediaTypes(chatObject.attachments, this.totalmessages)
+    this.filteredChatObject = Chat.removeSystemMessages(this.chatObject);
+    this.totalMessages = this.filteredChatObject.length;
+    this.media = Chat.getMediaTypes(chatObject.attachments, this.totalMessages);
 
-    
+    const messagesPerPerson = Chat.getMessagesPerPerson(this.filteredChatObject);
+    this.numPersonsInChat = Object.keys(messagesPerPerson).length;
+    this.personColorMap = Chat.assignColors(messagesPerPerson);
 
-    const messagesTemp = Object.entries(
-      Chat.getMessagesPerPerson(this.filterdChatObject)
-    );
-
-    this.numPersonsInChat = messagesTemp.length;
-    this.personColorMap = {};
-    messagesTemp.forEach((item, idx) => {
-      this.personColorMap[item[0]] = chatColors[idx % chatColors.length];
-    });
-
-    // frequencies for all words in chat (excluding system)
     this._sortedFreqList = null;
-    // here we have the messages per person, also adding colors to them
     this._messagesPerPerson = null;
-
-    // all dates of messages
     this._dates = null;
-
-    this.__reload();
-    this.Statistics = Chat.getStatistics(this.filterdChatObject,this.numPersonsInChat)
+    this._funFacts = this.getFunFacts();
+    this.statistics = Chat.getStatistics(this.filteredChatObject, this.numPersonsInChat);
   }
 
+  static getMediaTypes(attachments, totalMessages) {
+    const mediaTypes = {
+      totalMessages,
+      images: 0,
+      audio: 0,
+      video: 0,
+      documents: 0,
+    };
 
-  static getMediaTypes(attachments, totalmessages){
-    let media = {
-      totalmessages,
-      images:0,
-      audio:0,
-      video:0,
-      documents:0
-    }
+    const typeMappings = {
+      image: ["jpeg", "jpg", "png", "gif", "svg", "webp"],
+      video: ["mp4", "avi", "mkv", "webm", "3gp", "mpeg"],
+      audio: ["mp3", "aac", "wav", "ogg", "m4a", "opus"],
+    };
 
-    let imageTypes = ['jpg','jpeg','png','gif','svg','webp']
-    let videoTypes = ['mp4', 'avi', 'mkv','webm', '3gp', 'mpeg']
-    let audioTypes = ['mp3', 'aac', 'wav','ogg','m4a','opus']
+    attachments.forEach((attachment) => {
+      const ext = attachment.name.split(".").pop().toLowerCase();
+      if (!ext) return;
 
-
-    attachments.forEach((attachment)=>{
-      let temp = attachment.name.split('.');
-      let ext = temp.at(-1).toLowerCase();
-      if(!ext){
-        return
-      }
-      else if(imageTypes.includes(ext)){
-        media.images++;
+      else if(typeMappings.image.includes(ext)){
+        mediaTypes.images++;
         attachment.type = "image/jpeg"
       }
-      else if(audioTypes.includes(ext)){
-        media.audio++
+      else if(typeMappings.audio.includes(ext)){
+        mediaTypes.audio++
         attachment.type = "audio/mpeg"
       }
-      else if(videoTypes.includes(ext)){
-        media.video++
+      else if(typeMappings.video.includes(ext)){
+        mediaTypes.video++
         attachment.type = "video/mp4"
       }
       else{
-        media.documents++
+        mediaTypes.documents++
         attachment.type = "others"
       }
-      
-    })
+    });
 
-  return {
-    media,
-    attachments
-  }
-    // let fileNames =  attachments?.reduce((names,file)=>{
-    //   names.push(file.name)
-    //   return names
-    // },[])
-
-    // let fileExt = fileNames?.map((name)=>{
-    //   let temp = name.split('.')
-    //   if(temp.length>1){
-    //     return temp.at(-1).toLowerCase()
-    //   }
-    // })
-
-    // fileExt?.forEach((ext)=>{
-    //   if(!ext){
-    //     return
-    //   }
-    //   else if(imageTypes.includes(ext)){
-    //     media.images++
-    //   }
-    //   else if(audioTypes.includes(ext)){
-    //     media.audio++
-    //   }
-    //   else if(videoTypes.includes(ext)){
-    //     media.video++
-    //   }
-    //   else{
-    //     media.documents++
-    //   }
-    // })
-
-    return media
+    return { media: mediaTypes, attachments };
   }
 
   static removeSystemMessages(chatObject) {
-    // remove the first message with slice ("this chat is encrypted") and all system messages via the filter.
-    return chatObject
-      .filter((message) => message.author !== "system" && message.author !== "null" && message.author !== "null\n" && message.message !== 'null' && message.message !=='<Media omitted>' )
-      // .slice(1);
+    return chatObject.filter(
+      (message) =>
+        message.author !== "system" &&
+        message.author !== "null" &&
+        message.author !== "null\n" &&
+        message.message !== "null" &&
+        message.message !== "<Media omitted>"
+    );
   }
-
   static groupBy(chatObject, key) {
-    return chatObject.reduce(function (rv, x) {
-      (rv[x[key]] = rv[x[key]] || []).push(x);
-      return rv;
+    return chatObject.reduce((acc, item) => {
+      (acc[item[key]] = acc[item[key]] || []).push(item);
+      return acc;
     }, {});
   }
 
   static getTotalNumberOfWords(chatObject) {
-    return chatObject.reduce(
-      (n, { message }) => n + message.split(" ").length,
-      0
-    );
-  }
-  // Find hapax legomenons, a word or an expression that occurs only once within the context.
-  static uniqueWords(chat_distribution) {
-    function singleOccurrence(value) {
-      return value[1] === 1;
-    }
-    return chat_distribution.filter(singleOccurrence);
+    return chatObject.reduce((acc, { message }) => acc + message.split(" ").length, 0);
   }
 
-  static match_emojys(chat_distribution, terminationCondition = 3) {
-    let mostUsedEmojis = new Set();
-    const regexpEmojiPresentation = /\p{Emoji_Presentation}/gu;
-    for (let entry of chat_distribution) {
-      if (mostUsedEmojis.size === terminationCondition) {
-        return mostUsedEmojis;
-      }
-      let emojis = onlyEmoji(entry[0]);
-      if (emojis.length !== 0 && emojis[0].match(regexpEmojiPresentation)) {
-        mostUsedEmojis.add(emojis[0]);
-      }
-    }
-    return mostUsedEmojis;
+  static uniqueWords(chatDistribution) {
+    return chatDistribution.filter(([_, count]) => count === 1);
   }
 
-  static get_longest_message(chat_object) {
-    let max_value = 0;
-    chat_object.forEach((chat_line) => {
-      const cur_length = chat_line.message.split(" ").length;
-      if (max_value < cur_length) {
-        max_value = cur_length;
-      }
-    });
-    return max_value;
+  static getLongestMessage(chatObject) {
+    return Math.max(...chatObject.map(({ message }) => message.split(" ").length));
   }
-
   // creates a sorted FreqArray for the chat corpus [{word: 10},{hi:9},...]
   static createSortedFreqDict(chatObject) {
-    let message_string = chatObject.reduce(
-      (n, { message }) => n + " " + message,
-      " "
-    );
-    message_string = message_string.replace(/\u200E/gi, "");
-    let message_array = message_string.replace(/\n/g, " ").split(" ");
-    let distribution = {};
-    message_array.map(function (item) {
-      distribution[item] = (distribution[item] || 0) + 1;
-    });
-    let sorted_distribution = Object.entries(distribution).sort(
-      (a, b) => b[1] - a[1]
-    );
-    return sorted_distribution;
-  }
+    const messageString = chatObject.map(({ message }) => message.replace(/\u200E/gi, "")).join(" ");
+    const messageArray = messageString.replace(/\n/g, " ").split(" ");
+    const distribution = messageArray.reduce((acc, word) => {
+      acc[word] = (acc[word] || 0) + 1;
+      return acc;
+    }, {});
 
-  static toDayDates(chatObject) {
-    return chatObject.map((message) => message.date.setHours(0, 0, 0, 0));
+    return Object.entries(distribution).sort(([, countA], [, countB]) => countB - countA);
   }
-
+  
   static getMessagesPerPerson(chatObject) {
     return this.groupBy(chatObject, "author");
   }
 
   static hourlyDataFromChat(messages) {
-    let hours = new Array(24).fill(0);
-    messages.map((message) => {
-      hours[message.date.getHours()] += 1;
+    const hours = new Array(24).fill(0);
+    messages.forEach(({ date }) => {
+      hours[date.getHours()]++;
     });
     return hours;
   }
 
   static dailyDataFromChat(messages) {
-    let hours = new Array(7).fill(0);
-    messages.map((message) => {
-      hours[message.date.getDay()] += 1;
+    const days = new Array(7).fill(0);
+    messages.forEach(({ date }) => {
+      days[date.getDay()]++;
     });
-    return hours;
+    return days;
   }
 
   static weeklyDataFromChat(messages) {
-    let hours = new Array(12).fill(0);
-    messages.map((message) => {
-      hours[message.date.getMonth()] += 1;
+    const months = new Array(12).fill(0);
+    messages.forEach(({ date }) => {
+      months[date.getMonth()]++;
     });
-    return hours;
+    return months;
   }
-  
-  static getStatistics(chatObject,numPersonsInChat){
-    const users = Chat.getMessagesPerPerson(chatObject)
+
+  static getStatistics(chatObject, numPersonsInChat) {
+    const users = Chat.getMessagesPerPerson(chatObject);
     const monthlyData = Chat.weeklyDataFromChat(chatObject);
-    const hourlyData = Chat.hourlyDataFromChat(chatObject)
-    const months = ['January', 'February', 'March','April','May', 'June', 'July', 'August', 'September', 'October','November','December']
-    const findKeyOfLongestArray = (obj) => {
-      let longestKey = null;
-      let longestLength = 0;
-      
-      for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          const array = obj[key];
-          if (Array.isArray(array) && array.length > longestLength) {
-            longestLength = array.length;
-            longestKey = key;
-          }
-        }
-      }
-      
-      return longestKey;
-    };
-    
-    function getDates(date){
-      const year = date.getFullYear()
-      const months = ['January', 'February', 'March','April','May', 'June', 'July', 'August', 'September', 'October','November','December']
-      const month = months[date.getMonth()]
-      const day = date.getDate()
-      return `${day} ${month} ${year}`
-    }
-    
-    const totalmessages = chatObject.length
-    const firstMessage = getDates(chatObject[0].date);
-    const lastMessage = getDates(chatObject.at(-1).date);
-    const noOfDays = (chatObject.at(-1).date - chatObject[0].date)/(1000*60*60*24);
-    const mostActiveMonth = months[monthlyData.indexOf((Math.max(...monthlyData)))];
-    const mostActiveUser = findKeyOfLongestArray(users);;
-    const totalParticipants = numPersonsInChat;
-    const averageMessagePerUser = Math.round((chatObject.length/numPersonsInChat)*100)/100;
-    const messagesPerDay = Math.round((totalmessages/noOfDays)*100)/100;
-    const messagePerMonth =Math.round((totalmessages/(noOfDays/30))*100)/100;
-    
+    const hourlyData = Chat.hourlyDataFromChat(chatObject);
+
+    const totalMessages = chatObject.length;
+    const firstMessageDate = chatObject[0].date;
+    const lastMessageDate = chatObject.at(-1).date;
+    const noOfDays = Math.ceil((lastMessageDate - firstMessageDate) / (1000 * 60 * 60 * 24));
+
+    const mostActiveMonth = new Date(0, monthlyData.indexOf(Math.max(...monthlyData)), 1).toLocaleString("default", { month: "long" });
+    const mostActiveUser = Object.entries(users).reduce((max, curr) => (curr[1].length > max[1].length ? curr : max))[0];
+    const averageMessagePerUser = (totalMessages / numPersonsInChat).toFixed(2);
+    const messagesPerDay = (totalMessages / noOfDays).toFixed(2);
+    const messagePerMonth = (totalMessages / (noOfDays / 30)).toFixed(2);
+
+    const formatDate = (date) => `${date.getDate()} ${date.toLocaleString("default", { month: "long" })} ${date.getFullYear()}`;
+
     return {
       hourlyData,
       monthlyData,
-      noOfDays: Math.ceil(noOfDays),
-      totalmessages,
-      firstMessage,
-      lastMessage,
+      noOfDays,
+      totalMessages,
+      firstMessage: formatDate(firstMessageDate),
+      lastMessage: formatDate(lastMessageDate),
       mostActiveMonth,
       mostActiveUser,
-      totalParticipants,
+      totalParticipants: numPersonsInChat,
       averageMessagePerUser,
       messagesPerDay,
       messagePerMonth,
-    }
+    };
   }
 
-  __reload() {
-    this._lineGraphData = this._getLineGraphData();
-    this._funfacts = this._getFunFacts();
-    this._allWords = this._getAllWords();
-    this._hourlyData = this._getHourlyData();
-    this._dailyData = this._getDailyData();
-    this._weeklyData = this._getWeeklyData();
-    this._shareOfSpeech = this._getShareOfSpeech();
+  static assignColors(messagesPerPerson) {
+    return Object.keys(messagesPerPerson).reduce((acc, person, idx) => {
+      acc[person] = chatColors[idx % chatColors.length];
+      return acc;
+    }, {});
   }
 
   get sortedFreqDict() {
@@ -301,40 +185,20 @@ export class Chat {
     return this._messagesPerPerson;
   }
 
-  set groupAfter(groupAfter) {
-    this._groupAfter = groupAfter;
-    this._messagesPerPerson = null;
-
-    this._lineGraphData = this._getLineGraphData();
-    this._funfacts = this._getFunFacts();
-    this._allWords = this._getAllWords();
-    this._hourlyData = this._getHourlyData();
-    this._dailyData = this._getDailyData();
-    this._weeklyData = this._getWeeklyData();
-    this._shareOfSpeech = this._getShareOfSpeech();
-  }
-
   _getMessagesPerPerson() {
-    let persons = Object.entries(
-      Chat.getMessagesPerPerson(this.filterdChatObject)
-    );
-    persons = persons.sort((a, b) => b[1].length - a[1].length);
-
+    let persons = Object.entries(Chat.getMessagesPerPerson(this.filteredChatObject)).sort(([, a], [, b]) => b.length - a.length);
     let enrichedPersons = [];
-
     let grouped = false;
 
-    persons.forEach((person, idx) => {
+    persons.forEach(([name, messages], idx) => {
       if (idx > this._groupAfter) {
-        enrichedPersons[this._groupAfter].messages = enrichedPersons[
-          this._groupAfter
-        ].messages.concat(person[1]);
+        enrichedPersons[this._groupAfter].messages.push(...messages);
         grouped = true;
       } else {
         enrichedPersons.push({
-          name: person[0],
-          color: this.personColorMap[person[0]],
-          messages: person[1].sort((a, b) => a.date - b.date),
+          name,
+          color: this.personColorMap[name],
+          messages: messages.sort((a, b) => a.date - b.date),
         });
       }
     });
@@ -342,252 +206,31 @@ export class Chat {
     if (grouped) {
       enrichedPersons[this._groupAfter].name = "Others";
       enrichedPersons[this._groupAfter].color = "#D3D3D3";
-      enrichedPersons[this._groupAfter].messages.sort(
-        (a, b) => a.absolute_id - b.absolute_id
-      );
+      enrichedPersons[this._groupAfter].messages.sort((a, b) => a.absolute_id - b.absolute_id);
     }
+
     return enrichedPersons;
   }
 
-  get dates() {
-    if (this._dates) return this._dates;
-    this._dates = this.filterdChatObject.map((message) => message.date);
-    return this._dates;
-  }
+  getFunFacts() {
+    return this.messagesPerPerson.map((person) => {
+      const { name, color, messages } = person;
+      const numberOfMessages = messages.length;
+      const numberOfWords = Chat.getTotalNumberOfWords(messages);
+      const longestMessage = Chat.getLongestMessage(messages);
+      const personalFreqDict = Chat.createSortedFreqDict(messages);
+      const uniqueWords = Chat.uniqueWords(personalFreqDict).length;
+      const averageMessageLength = Math.round(numberOfWords / numberOfMessages);
 
-  _getShareOfSpeech(opacity = 1) {
-    return {
-      labels: this.messagesPerPerson.map((person) => person.name),
-      datasets: [
-        {
-          label: "Share of Speech",
-          backgroundColor: this.messagesPerPerson.map((person) =>
-            hexToRgbA(person.color, opacity)
-          ),
-          borderColor: this.messagesPerPerson.map((person) => person.color),
-          data: this.messagesPerPerson.map((person) => person.messages.length),
-        },
-      ],
-    };
-  }
-
-  getShareOfSpeech() {
-    return this._shareOfSpeech;
-  }
-
-  _getFunFacts() {
-    let people = this.messagesPerPerson.map((person) => {
-      let name = person.name;
-      let numberOfMessage = person.messages.length
-      let numberOfWords = Chat.getTotalNumberOfWords(person.messages);
-      let longestMessage = Chat.get_longest_message(person.messages);
-      let personalFreqDic = Chat.createSortedFreqDict(person.messages);
-
-      let uniqueWords = Chat.uniqueWords(personalFreqDic).length;
-      let sortedEmojis = Chat.match_emojys(personalFreqDic, 3);
-      let averageMessageLength = numberOfWords / person.messages.length;
       return {
-        color: person.color,
         name,
-        numberOfMessage,
+        color,
+        numberOfMessages,
         numberOfWords,
         longestMessage,
         uniqueWords,
-        sortedEmojis,
-        averageMessageLength: Math.round(averageMessageLength),
+        averageMessageLength,
       };
     });
-    return people;
-  }
-
-  getFunFacts() {
-    return this._funfacts;
-  }
-
-  _getHourlyData(opacity = 1) {
-    return {
-      labels: [
-        "0AM",
-        "1AM",
-        "2AM",
-        "3AM",
-        "4AM",
-        "5AM",
-        "6AM",
-        "7AM",
-        "8AM",
-        "9AM",
-        "10AM",
-        "11AM",
-        "12PM",
-        "1PM",
-        "2PM",
-        "3PM",
-        "4PM",
-        "5PM",
-        "6PM",
-        "7PM",
-        "8PM",
-        "9PM",
-        "10PM",
-        "11PM",
-      ],
-      datasets: this.messagesPerPerson.map((person) => {
-        return {
-          label: person.name,
-          backgroundColor: hexToRgbA(person.color, opacity),
-          borderColor: person.color,
-          data: Chat.hourlyDataFromChat(person.messages),
-        };
-      }),
-    };
-  }
-
-  getHourlyData() {
-    return this._hourlyData;
-  }
-
-  _getDailyData(opacity = 1) {
-    return {
-      labels: moment.weekdays(),
-      datasets: this.messagesPerPerson.map((person) => {
-        return {
-          label: person.name,
-          backgroundColor: hexToRgbA(person.color, opacity),
-          borderColor: person.color,
-          data: Chat.dailyDataFromChat(person.messages),
-        };
-      }),
-    };
-  }
-
-  getDailyData() {
-    return this._dailyData;
-  }
-
-  _getWeeklyData(opacity = 1) {
-    return {
-      labels: moment.months(),
-      datasets: this.messagesPerPerson.map((person) => {
-        return {
-          label: person.name,
-          backgroundColor: hexToRgbA(person.color, opacity),
-          borderColor: person.color,
-          data: Chat.weeklyDataFromChat(person.messages),
-        };
-      }),
-    };
-  }
-
-  getWeeklyData() {
-    return this._weeklyData;
-  }
-
-  _getLineGraphData() {
-    let getDaysArray = function (s, e) {
-      let initDateDict = {};
-      for (let m = moment(s); m.isBefore(e); m.add(1, "days")) {
-        initDateDict[m.format("YYYY-MM-DD")] = 0;
-      }
-      return initDateDict;
-    };
-    function arrayMin(arr) {
-      var len = arr.length,
-        min = Infinity;
-      while (len--) {
-        if (arr[len] < min) {
-          min = arr[len];
-        }
-      }
-      return min;
-    }
-
-    function arrayMax(arr) {
-      var len = arr.length,
-        max = -Infinity;
-      while (len--) {
-        if (arr[len] > max) {
-          max = arr[len];
-        }
-      }
-      return max;
-    }
-
-    const minDate = new Date(arrayMin(this.dates));
-    const maxDate = new Date(arrayMax(this.dates));
-    let daysDict = getDaysArray(minDate, maxDate);
-    this.filterdChatObject.map((message) => {
-      daysDict[moment(message.date).format("YYYY-MM-DD")] += 1;
-    });
-    return {
-      labels: Object.keys(daysDict),
-      datasets: [
-        {
-          data: Object.values(daysDict),
-          borderWidth: 1,
-          lineTension: 0,
-          pointRadius: 0,
-          pointHitRadius: 2,
-          backgroundColor: hexToRgbA("#EF5350"),
-          borderColor: hexToRgbA("#B71C1C", [1]),
-        },
-      ],
-    };
-  }
-
-  getLineGraphData() {
-    return this._lineGraphData;
-  }
-
-  getLineGraphXAxis(maxDate, minDate) {
-    var diffDate = new Date(maxDate - minDate);
-    var unit = "";
-    if (diffDate.getFullYear() > 1971) unit = "year";
-    else if (diffDate.getFullYear() > 1970 && diffDate.getMonth() > 0)
-      unit = "month";
-    else unit = "day";
-    return unit;
-  }
-
-  _getAllWords() {
-    return this.sortedFreqDict
-      .filter(
-        (word) =>
-          !(
-            stopwords_de.includes(word[0].toLowerCase()) ||
-            stopwords.includes(word[0].toLowerCase()) ||
-            [
-              "",
-              "ich",
-              "du",
-              "wir",
-              "aber",
-              "<media",
-              "<attached:",
-              "audio",
-              "omitted>",
-              "bild",
-              "image",
-              "<medien",
-              "ausgeschlossen>",
-              "weggelassen",
-              "omitted",
-              "_",
-              "_weggelassen>",
-              "_ommited>",
-              "_omesso>",
-              "_omitted",
-              "_weggelassen",
-              "_attached",
-            ].includes(word[0].toLowerCase())
-          ) && word[1] > 1
-      )
-      .map((word) => {
-        return { word: word[0], freq: word[1] };
-      });
-  }
-
-  getAllWords() {
-    return this._allWords.then((x) => x.slice(0, this._maxWordsWordCloud));
   }
 }

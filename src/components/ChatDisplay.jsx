@@ -11,7 +11,7 @@ const ChatDisplay = ({ ego, color, mode}) => {
 
   useEffect(() => {
     if (chat) {
-      setSample(chat.filterdChatObject.slice(0, 40));
+      setSample(chat.filteredChatObject.slice(0, 40));
       setAttachments(chat.media.attachments);
     }
   }, [chat]);

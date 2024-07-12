@@ -59,7 +59,7 @@ const Analytics = () => {
   const { chat, setChat } = useContext(UserContext);
   const [statistics, setStatistics] = useState(null);
   const [media, setMedia] = useState(null);
-  const [funfacts, setFunfacts] = useState(null);
+  const [funFacts, setFunFacts] = useState(null);
   const [ego, setEgo] = useState('');
   const [color, setColor] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
@@ -71,13 +71,13 @@ const Analytics = () => {
       setStatistics(chat.Statistics);
       setMedia(chat.media["media"]);
       // setAttachments(chat.media["attachments"]);
-      setFunfacts(chat.getFunFacts());
+      setFunFacts(chat._funFacts);
       setColor(chat.personColorMap);
     }
-    if (funfacts) {
-      setEgo(funfacts[0].name);
+    if (funFacts) {
+      setEgo(funFacts[0].name);
     }
-  }, [chat, funfacts]);
+  }, [chat, funFacts]);
   const handleEgoChange = (e) => {
     setEgo(e.target.value);
   };
@@ -92,7 +92,7 @@ const Analytics = () => {
         <div className="content bg-white min-h-screen w-full flex flex-col  md:my-10 md:w-3/4 rounded-lg md:rounded-xl">
           <div className="attachments flex justify-evenly md:justify-center gap-5 my-10 flex-wrap ">
             <div>
-              <h1>{media?.totalmessages}</h1>
+              <h1>{media?.totalMessages}</h1>
               <p>Messages</p>
             </div>
             <div>
@@ -142,7 +142,7 @@ const Analytics = () => {
           </div>
           <div className="funfacts w-11/12 mx-auto flex justify-center my-10">
             <div className="flex flex-wrap gap-5">
-              {funfacts?.map((user, i) => {
+              {funFacts?.map((user, i) => {
                 if (user.name !== "null") {
                   return (
                     <div key={i} className="user flex flex-grow flex-col">
@@ -174,7 +174,7 @@ const Analytics = () => {
             </div>
           </div>
           <ChartComponent />
-          {funfacts ? (
+          {funFacts ? (
             <div className="preview rounded-xl w-11/12 mx-auto my-6 ">
               <div className=" header  flex flex-col md:flex-row mx-auto justify-between  ">               
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -196,7 +196,7 @@ const Analytics = () => {
                         }}
                         className="bg-white"// Custom styles for smaller size
                       >
-                        {funfacts?.map((user, index) => {
+                        {funFacts?.map((user, index) => {
                           if(user.name !== 'null')
                             return  <MenuItem value={user.name} key={index}>{user.name}</MenuItem>
                         })}
