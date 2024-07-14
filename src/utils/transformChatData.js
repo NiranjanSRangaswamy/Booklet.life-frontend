@@ -6,7 +6,7 @@ export class Chat {
     this._groupAfter = groupAfter;
     this._maxWordsWordCloud = maxWordsWordCloud;
     this.filteredChatObject = Chat.removeSystemMessages(this.chatObject);
-    this.totalMessages = this.filteredChatObject.length;
+    this.totalMessages = this.filteredChatObject.filter((message)=>(message.author !== null)).length;
     this.media = Chat.getMediaTypes(chatObject.attachments, this.totalMessages);
 
     const messagesPerPerson = Chat.getMessagesPerPerson(this.filteredChatObject);
@@ -16,8 +16,8 @@ export class Chat {
     this._sortedFreqList = null;
     this._messagesPerPerson = null;
     this._dates = null;
-    this._funFacts = this.getFunFacts();
-    this.statistics = Chat.getStatistics(this.filteredChatObject, this.numPersonsInChat);
+    this.funFacts = this.getFunFacts();
+    this.statistics = Chat.getStatistics(this.filteredChatObject, this.numPersonsInChat -1);
   }
 
   static getMediaTypes(attachments, totalMessages) {
@@ -134,7 +134,7 @@ export class Chat {
     const hourlyData = Chat.hourlyDataFromChat(chatObject);
 
     const totalMessages = chatObject.length;
-    const firstMessageDate = chatObject[0].date;
+    const firstMessageDate = chatObject[chatObject.findIndex(message => message.author !== null)].date;
     const lastMessageDate = chatObject.at(-1).date;
     const noOfDays = Math.ceil((lastMessageDate - firstMessageDate) / (1000 * 60 * 60 * 24));
 

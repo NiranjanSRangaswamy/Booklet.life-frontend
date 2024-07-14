@@ -2,6 +2,7 @@ import React, { useEffect, useContext, useState } from "react";
 import Navbar from "./Navbar";
 import UserContext from "../utils/UserContext.js";
 import { Link } from "react-router-dom";
+import renderPDF from "../utils/pdf.js";
 
 import ChartComponent from "./ChartComponent.jsx";
 import ChatDisplay from "./ChatDisplay.jsx";
@@ -67,23 +68,28 @@ const Analytics = () => {
 
   useEffect(() => {
     if (chat) {
-      console.log(chat);
-      setStatistics(chat.Statistics);
+      setStatistics(chat.statistics);
       setMedia(chat.media["media"]);
       // setAttachments(chat.media["attachments"]);
-      setFunFacts(chat._funFacts);
+      setFunFacts(chat.funFacts);
       setColor(chat.personColorMap);
     }
     if (funFacts) {
       setEgo(funFacts[0].name);
     }
   }, [chat, funFacts]);
+
   const handleEgoChange = (e) => {
     setEgo(e.target.value);
   };
+
   const handleColorChange = (e) => {
     setDarkMode(e.target.checked);
   };
+
+  const handleSampleDownload=()=>{
+    renderPDF(chat, ego )
+  }
 
   return (
     <section className="analytics min-h-screen w-full " id="analytics">
@@ -149,15 +155,15 @@ const Analytics = () => {
                       <h1>{user.name}</h1>
                       <div>
                         <p>Messages sent</p>
-                        <h2>{user.numberOfMessage}</h2>
-                      </div>
-                      <div>
-                        <p>Words per message</p>
-                        <h2>{user.averageMessageLength}</h2>
+                        <h2>{user.numberOfMessages}</h2>
                       </div>
                       <div>
                         <p>Longest Message</p>
                         <h2>{user.longestMessage}</h2>
+                      </div>
+                      <div>
+                        <p>Words per message</p>
+                        <h2>{user.averageMessageLength}</h2>
                       </div>
                       <div>
                         <p>Total words</p>
@@ -174,9 +180,9 @@ const Analytics = () => {
             </div>
           </div>
           <ChartComponent />
-          {funFacts ? (
+          {funFacts? (
             <div className="preview rounded-xl w-11/12 mx-auto my-6 ">
-              <div className=" header  flex flex-col md:flex-row mx-auto justify-between  ">               
+              <div className=" header  flex flex-row mx-auto justify-between  ">               
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <MaterialUISwitch checked={darkMode} onChange={handleColorChange} />
                 </Box>
@@ -209,8 +215,8 @@ const Analytics = () => {
               </div>
               <ChatDisplay ego={ego} color={color} mode={darkMode} />
                 <div className="download w-full flex justify-evenly md:justify-center md:gap-5">
-                  <button className=" my-3  rounded-sm py-1 px-2 text-white">
-                    <Link to="/sample">Download Sample</Link>
+                  <button className=" my-3  rounded-sm py-1 px-2 text-white" onClick={handleSampleDownload} >
+                    Download Sample
                   </button>
                   <button className=" my-3   rounded-sm py-1 px-2 text-white">
                     <Link to="/cart">Get Full PDF</Link>

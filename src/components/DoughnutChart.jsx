@@ -21,7 +21,7 @@ const DoughnutChart = ({ data }) => {
     responsive: true,
     plugins: {
       legend: {
-        position: 'right',
+        position: 'bottom',
         labels: {
           usePointStyle: true,
           padding: 10,

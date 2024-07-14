@@ -11,26 +11,27 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const ChartComponent = () => {
 
   const {chat} = useContext(UserContext);
-  const [data,setdata] = useState({
+  const [data,setData] = useState({
     labels: ['First User Name', 'Second User Name', 'Third User Name'],
     values: [57.63, 42.37, 30.00], // example values
   })
 
   const [statistics,setStatistics] = useState(null);
+
   useEffect(()=>{
     if(chat){
       let labels= [];
       let color = [];
       let values = [];
-      setStatistics(chat.Statistics)
-      chat._funFacts.map((user)=>{
+      setStatistics(chat.statistics)
+      chat.funFacts.map((user)=>{
         if(user.name !== 'null'){
           labels.push(user.name);
           color.push(user.color);
-          values.push(user.numberOfMessage)
+          values.push(user.numberOfMessages)
         }
       })
-      setdata({
+      setData({
         labels,
         color,
         values

@@ -3,6 +3,7 @@ import UserContext from "../utils/UserContext";
 import { getAttachment } from "../utils/procesAttachments";
 import { IoIosPlay } from "react-icons/io";
 import { IoIosDocument } from "react-icons/io";
+import { IoPlayCircleOutline } from "react-icons/io5";
 
 const ChatDisplay = ({ ego, color, mode}) => {
   const { chat } = useContext(UserContext);
@@ -62,10 +63,15 @@ const ChatDisplay = ({ ego, color, mode}) => {
       return <img src={url} alt="attachment" className="thumbnail sm:min-w-[300px]" />;
     } else if (type.startsWith("video/")) {
       return (
-        <video className="thumbnail sm:min-w-[300px]" controls={false}>
-          <source src={url} type={type} />
-          Your browser does not support the video tag.
-        </video>
+        <div className="video-thumbnail-container sm:min-w-[300px]">
+          <video className="thumbnail" controls={false}>
+            <source src={url} type={type} />
+            Your browser does not support the video tag.
+          </video>
+          <div className="overlay">
+            <div className="play-button"><IoPlayCircleOutline  size={'48px'}/></div>
+          </div>
+        </div>
       );
     } else if (type.startsWith("audio")) {
       return (
