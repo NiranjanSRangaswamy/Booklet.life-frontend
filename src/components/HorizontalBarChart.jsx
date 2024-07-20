@@ -4,7 +4,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const HorizontalBarChart = ({chartData}) => {
+const HorizontalBarChart = ({id,chartData}) => {
 
   const data = {
     labels: [
@@ -24,7 +24,7 @@ const HorizontalBarChart = ({chartData}) => {
   };
 
   const options = {
-    indexAxis: 'y',
+    indexAxis: 'x',
     Response: true,
     maintainAspectRatio:false,
     scales: {
@@ -51,7 +51,7 @@ const HorizontalBarChart = ({chartData}) => {
         display: true,
         text: 'Messages in each month', // Add your title here
         font: {
-          size: 20
+          size: 30
         }
       }
     },
@@ -65,7 +65,7 @@ const HorizontalBarChart = ({chartData}) => {
     },
   };
 
-  return <Bar data={data} options={options} />;
+  return <Bar id={id} data={data} options={options} />;
 };
 
 export default HorizontalBarChart;

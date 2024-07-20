@@ -5,7 +5,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 
-const VerticalBarChart = ({chartData}) => {
+const VerticalBarChart = ({id,chartData}) => {
 
   const data = {
     labels: ["0AM","1AM","2AM","3AM","4AM","5AM","6AM","7AM","8AM","9AM","10AM","11AM","12PM","1PM","2PM","3PM","4PM","5PM","6PM","7PM","8PM","9PM","10PM","11PM",],
@@ -49,7 +49,7 @@ const VerticalBarChart = ({chartData}) => {
         display: true,
         text: 'Messages in each hour', // Add your title here
         font: {
-          size: 20
+          size: 30
         }
       }
     },
@@ -63,7 +63,7 @@ const VerticalBarChart = ({chartData}) => {
     },
   };
 
-  return <Bar data={data} options={options} />;
+  return <Bar data={data} id={id} options={options} />;
 }
 
 export default VerticalBarChart

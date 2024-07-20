@@ -4,7 +4,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const DoughnutChart = ({ data }) => {
+const DoughnutChart = ({id, data }) => {
   const chartData = {
     labels: data.labels,
     datasets: [
@@ -42,7 +42,7 @@ const DoughnutChart = ({ data }) => {
         display: true,
         text: 'Messages from each user', // Add your title here
         font: {
-          size: 20
+          size: 30
         }
       },
       tooltip: {
@@ -55,7 +55,7 @@ const DoughnutChart = ({ data }) => {
     },
   };
 
-  return <Doughnut data={chartData} options={options} />;
+  return <Doughnut id={id} data={chartData} options={options} />;
 };
 
 export default DoughnutChart;

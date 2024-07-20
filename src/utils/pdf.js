@@ -4,6 +4,11 @@ import lightBg from "../assets/light-bg.png";
 import darkIcon from '../assets/logo-white.jpg';
 import lightIcon from '../assets/logo-green.jpg';
 
+const captureChartAsImage = (chartId) => {
+  const canvas = document.getElementById(chartId);
+  return canvas.toDataURL('chart/png', 1.0); // The second parameter sets the chart quality (1.0 for highest quality)
+};
+
 const renderPDF = async (chat, ego, darkMode = true, sample = true) => {
 
   console.log(chat);
@@ -29,10 +34,10 @@ const renderPDF = async (chat, ego, darkMode = true, sample = true) => {
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), 'F');
   };
 
-  const setBackgroundImage = (doc, imageSrc) => {
+  const setBackgroundImage = (doc, chartSrc) => {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.src = imageSrc;
+      img.src = chartSrc;
       img.onload = () => {
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeight = doc.internal.pageSize.getHeight();
@@ -71,7 +76,7 @@ const renderPDF = async (chat, ego, darkMode = true, sample = true) => {
     const iconMargin = 5;
     const pageWidth = doc.internal.pageSize.getWidth();
     usedYSpace = marginTop;
-
+    
     doc.addImage(icon, 'PNG', pageWidth - iconWidth - iconMargin, iconMargin, iconWidth, iconHeight);
   };
 
@@ -199,6 +204,20 @@ const renderPDF = async (chat, ego, darkMode = true, sample = true) => {
   });
 
   // Charts page starts form here
+
+  usedYSpace=20
+
+  let chart
+  doc.addPage()
+  chart = captureChartAsImage('pieChart');
+  doc.addImage(chart, 'PNG', marginLeft, usedYSpace, 170, 170);
+  doc.addPage()
+  chart = captureChartAsImage('hourlyChart');
+  doc.addImage(chart, 'PNG', marginLeft, usedYSpace, 170, 120);
+  usedYSpace = 150
+  chart = captureChartAsImage('monthlyChart');
+  doc.addImage(chart, 'PNG', marginLeft, usedYSpace, 170, 120);
+
 
   doc.save("sample.pdf");
 };

@@ -46,31 +46,15 @@ const ChartComponent = () => {
       {
         statistics?
             <div className=''>
-              <div className='flex flex-col md:flex-row '>
-                <div className='md:w-5/12 w-full flex flex-col mx-auto pb-5 md:py-10 justify-evenly items-center chart-stats md:gap-10'>
-                  <div>
-                    <h1>{statistics?.noOfDays}</h1>
-                    <p>Days</p>
-                  </div>
-                  <div>
-                    <h1>{statistics?.messagesPerDay}</h1>
-                    <p>Average Messages Per Day</p>
-                  </div>
-                  <div>
-                    <h1>{statistics?.messagePerMonth}</h1>
-                    <p>Average Messages Per Day</p>
-                  </div>
+              <div className='flex flex-col'>
+                <div className=' w-full md:w-3/5 mx-auto px-2 flex justify-center items-center'>
+                  <DoughnutChart data={data} id={'pieChart'} />
                 </div>
-                <div className=' w-full md:w-2/5 mx-auto px-2 flex justify-center items-center'>
-                  <DoughnutChart data={data}/>
+                <div className=' h-96 px-2 bar-chart '>
+                  <VerticalBarChart chartData = {statistics.hourlyData}  id={'hourlyChart'}/>     
                 </div>
-              </div>
-              <div className='flex flex-col md:flex-row md:h-96'>
-                <div className=' md:w-1/2 px-2 bar-chart '>
-                  <VerticalBarChart chartData = {statistics.hourlyData}/>     
-                </div>
-                <div className=' md:w-1/2 px-2 bar-chart '>
-                  <HorizontalBarChart chartData= {statistics.monthlyData}/>
+                <div className=' h-96 px-2 bar-chart '>
+                  <HorizontalBarChart chartData= {statistics.monthlyData} id={'monthlyChart'} />
                 </div>
               </div>
               
