@@ -1,24 +1,16 @@
-import jsPDF from "jspdf";
-import darkBg from "../assets/dark-bg.png";
-import lightBg from "../assets/light-bg.png";
-import darkIcon from "../assets/logo-white.jpg";
-import lightIcon from "../assets/logo-green.jpg";
-import { getAttachment } from "./attachments";
-import { getDateString } from "./utils";
+importScripts("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+importScripts("https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js");
+importScripts('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js');
 
-const captureChartAsImage = (chartId) => {
-  const canvas = document.getElementById(chartId);
-  return canvas.toDataURL("chart/png", 1.0); // The second parameter sets the chart quality (1.0 for highest quality)
-};
-
-const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
-  console.log(chat);
-
+self.addEventListener("message", async (e) => {
+  const { chat, ego, darkMode, sample, base64Images } = e.data;
+  const { darkBg, lightBg, darkIcon, lightIcon, pieChart, hourlyChart, monthlyChart } = base64Images;
+  const { jsPDF } = self.jspdf;
   const backgroundColor = darkMode ? "#21a68d" : "#ffffff";
   const backgroundImage = darkMode ? darkBg : lightBg;
   const icon = darkMode ? darkIcon : lightIcon;
   const textColor = darkMode ? [255, 255, 255] : [0, 166, 141];
-  const messageColor = darkMode? [255, 255, 255] : [0,0,0]
+  const messageColor = darkMode ? [255, 255, 255] : [0, 0, 0];
   const authorPrimaryColor = darkMode ? "#15533b" : "#D9FDD3";
   const authorSecondaryColor = darkMode ? "#134333" : "#9cfab0";
   const othersPrimaryColor = darkMode ? "#1F2C34" : "#e9e7e4";
@@ -32,49 +24,38 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
   const pageYSpace = 297 - marginTop;
   const lineHeight = (fontSize * 1.5) / 3.64;
   const messageMarginBottom = 5;
-  const paddingMessage = 3;
+  const paddingMessage = 1;
   const authorHeight = 9;
-  const timeHeight = 3;             
-
-  const doc = new jsPDF();
-  let usedYSpace = 0;
+  const timeHeight = 3;
 
   const setBackgroundColor = (doc, color) => {
     doc.setFillColor(color);
     doc.rect(0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight(), "F");
   };
 
-  const setBackgroundImage = (doc, imgSrc) => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = imgSrc;
-      img.onload = () => {
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const imgWidth = img.width;
-        const imgHeight = img.height;
-        const pageRatio = pageWidth / pageHeight;
-        const imgRatio = imgWidth / imgHeight;
+  const setBackgroundImage = async (doc, imgSrc) => {
+    try {
+      const response = await fetch(imgSrc);
+      const blob = await response.blob();
+      const reader = new FileReader();
 
-        let drawWidth, drawHeight;
-        let offsetX = 0,
-          offsetY = 0;
+      return new Promise((resolve, reject) => {
+        reader.onloadend = () => {
+          const imgDataUrl = reader.result;
 
-        if (imgRatio > pageRatio) {
-          drawHeight = pageHeight;
-          drawWidth = imgWidth * (pageHeight / imgHeight);
-          offsetX = (pageWidth - drawWidth) / 2;
-        } else {
-          drawWidth = pageWidth;
-          drawHeight = imgHeight * (pageWidth / imgWidth);
-          offsetY = (pageHeight - drawHeight) / 2;
-        }
+          const pageWidth = doc.internal.pageSize.getWidth();
+          const pageHeight = doc.internal.pageSize.getHeight();
 
-        doc.addImage(img, "PNG", offsetX, offsetY, drawWidth, drawHeight);
-        resolve();
-      };
-      img.onerror = reject;
-    });
+          doc.addImage(imgDataUrl, "PNG", 0, 0, pageWidth, pageHeight);
+          resolve();
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Error loading image:", error);
+      throw error;
+    }
   };
 
   const addColoredPage = async (isBackgroundImageRequired = true) => {
@@ -109,28 +90,21 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
     usedYSpace += 10;
   };
 
-
-
-  const calcMessageBodyHeight =async function (numLines,attachmentHeight,isSystem) {
+  const calcMessageBodyHeight = async function (numLines, attachmentHeight, isSystem) {
     let messageY = marginTop + usedYSpace;
     const messageYSpace = numLines * lineHeight + authorHeight + timeHeight; // Height of Messages
     // Check if lines fit on page,
-    if (
-      usedYSpace + attachmentHeight + messageYSpace + marginTop / 2 >
-      pageYSpace
-    ) {
+    if (usedYSpace + attachmentHeight + messageYSpace + marginTop / 2 > pageYSpace) {
       // is first message
-      await addColoredPage(true );
+      await addColoredPage(true);
       messageY = marginTop;
       usedYSpace = 0;
     }
-    usedYSpace += isSystem
-      ? messageMarginBottom + messageYSpace - authorHeight + timeHeight
-      : messageMarginBottom + messageYSpace;
+    usedYSpace += isSystem ? messageMarginBottom + messageYSpace - authorHeight + timeHeight : messageMarginBottom + messageYSpace;
     return messageY;
   };
 
-  const getScale = function ( width, height, desiredWidth ) {
+  const getScale = function (width, height, desiredWidth) {
     const yScale = (0.5 * pageYSpace) / height;
     const xScale = desiredWidth / width;
 
@@ -151,11 +125,7 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
 
     const aRgbHex = hex.match(/.{1,2}/g);
     if (aRgbHex) {
-      return [
-        parseInt(aRgbHex[0], 16),
-        parseInt(aRgbHex[1], 16),
-        parseInt(aRgbHex[2], 16),
-      ];
+      return [parseInt(aRgbHex[0], 16), parseInt(aRgbHex[1], 16), parseInt(aRgbHex[2], 16)];
     }
     return [0, 0, 0];
   };
@@ -180,6 +150,10 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
   };
 
   // PDF generation starts from here
+
+  const doc = new jsPDF();
+  let usedYSpace = 0;
+
   setBackgroundColor(doc, backgroundColor);
   const iconMargin = 5;
   const iconWidth = 40;
@@ -197,7 +171,6 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
   const totalParticipants = chat.statistics["totalParticipants"];
   const averageMessagePerUser = chat.statistics["averageMessagePerUser"];
 
-  //statistics starts from here
   usedYSpace += 55;
   doc.setFont("helvetica", "bold");
   addHeading(sample ? "Your Sample" : "Your Chat", marginLeft, usedYSpace);
@@ -287,38 +260,30 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
 
   usedYSpace = 10;
 
-  let chart;
   doc.addPage();
-  chart = captureChartAsImage("pieChart");
-  doc.addImage(chart, "PNG", marginLeft, usedYSpace, 170, 170);
+  doc.addImage(pieChart, "PNG", marginLeft, usedYSpace, 170, 170);
   doc.addPage();
-  chart = captureChartAsImage("hourlyChart");
-  doc.addImage(chart, "PNG", marginLeft, usedYSpace, 170, 120);
+  doc.addImage(hourlyChart, "PNG", marginLeft, usedYSpace, 170, 120);
   usedYSpace = 150;
-  chart = captureChartAsImage("monthlyChart");
-  doc.addImage(chart, "PNG", marginLeft, usedYSpace, 170, 120);
+  doc.addImage(monthlyChart, "PNG", marginLeft, usedYSpace, 170, 120);
 
-  // chat iteration starts here
-
-  const messages = sample ? chat.filteredChatObject.slice(0, 40) : chat.filteredChatObject;
+  const messages = sample ? chat.filteredChatObject.slice(0, 100) : chat.filteredChatObject;
   await addColoredPage();
   usedYSpace = 10;
- 
-  
-  for(const idx in messages){
+  let rendering = []
 
-    const message = messages[idx]
+  for (const idx in messages) {
+    const message = messages[idx];
     const isEgo = message.author == ego;
     const isSystem = message.author == null;
-    const hasAttachment = !!message.attachment
-
+    const hasAttachment = !!message.attachment;
     let attachment;
-    let attachmentSize = [0,0]
-    let attachments  = chat.media['attachments']
+    let attachmentSize = [0, 0];
+    let attachments = chat.media["attachments"];
 
-    if(hasAttachment){
-      attachment =await getAttachment(message.attachment['fileName'],attachments)
-      if (!attachment.mimeTypeData.renderInPDF) continue;
+    if (hasAttachment) {
+      attachment = await getAttachment(message.attachment["fileName"], attachments);
+      if(!attachment) continue
       attachmentSize=[attachment.width,attachment.height]
       attachmentSize = getScale(
         attachmentSize[0],
@@ -326,52 +291,46 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
         (width - 2 * marginLeft) * 0.7
       );
     }
-
     doc.setFontSize(fontSize);
     const splitMessage = doc.splitTextToSize(message.message, isSystem?140:120);
     const numLines = splitMessage.length;
-    const messageHeight = lineHeight * numLines + attachmentSize[1];
+    const messageHeight = attachmentSize[1]?attachmentSize[1] : lineHeight * numLines ;
     const messageY =await calcMessageBodyHeight(numLines,attachmentSize[1],isSystem); 
     const singleLineTextWidth = doc.getTextWidth(message.message);
     let messageWidth = isSystem? singleLineTextWidth > 140 ? 140 : singleLineTextWidth :  hasAttachment? attachmentSize[0]: singleLineTextWidth > 120 ? 120: singleLineTextWidth;
     
     doc.setFont("helvetica", "bold");
     const authorWidth = doc.getTextWidth(!message.author?'':message.author);
-
+  
     doc.setFontSize(fontSize / 1.8);
     const dateString = getDateString(message.date, true);
     const dateWidth = doc.getTextWidth(dateString);
-
+  
     if (messageWidth < authorWidth) {
       messageWidth = authorWidth;
     }
     if (messageWidth < dateWidth) {
       messageWidth = dateWidth;
     }
-
-    const calculateSystemMessages = (message)=>{
-      const splitMessage = doc.splitTextToSize(message, 120);
-      const numLines = splitMessage.length;
-    }
-
+  
     let messageX = isEgo ? width - marginLeft - messageWidth - 10: marginLeft + paddingMessage;
-
+  
     let offset = 0
     if (isSystem) {
       // messageX = 105-(messageWidth/2)
       messageX = 30;
-      offset = (140 - messageWidth) / 2 + paddingMessage/2;
+      offset = (147 - messageWidth) / 2 + paddingMessage/2;
       doc.setFillColor(...hexToRgb(othersPrimaryColor));
     } else if (isEgo) {
       doc.setFillColor(...hexToRgb(authorPrimaryColor));
     } else {
       doc.setFillColor(...hexToRgb(othersPrimaryColor));
     }
-
+    
     doc.roundedRect(
       messageX + offset, // X-coordinate of the upper-left corner of the rectangle, offset by 'offset'
-      messageY - 1, // Y-coordinate of the upper-left corner of the rectangle, adjusted slightly upward
-      messageWidth + 6, // Width of the rectangle, slightly wider than the message width
+      messageY - 2, // Y-coordinate of the upper-left corner of the rectangle, adjusted slightly upward
+      messageWidth + 2, // Width of the rectangle, slightly wider than the message width
       isSystem
         ? messageHeight + 2 * paddingMessage // If it's a system message, height is the message height plus extra padding
         : messageHeight + authorHeight + timeHeight, // If it's not a system message, height includes author and time heights
@@ -395,17 +354,17 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
       doc.text(
         message.author,
         messageX + paddingMessage,
-        messageY + paddingMessage
+        messageY + 2
       );
     }
+    
     if (hasAttachment) {
-      const filetype = attachment?.mimeTypeData.mimeTypeEnding;
-
+      const filetype = attachment?.type;
       doc.addImage(
         attachment?.src,
         filetype,
         messageX + paddingMessage,
-        messageY + authorHeight,
+        messageY + 3,
         attachmentSize[0],
         attachmentSize[1]
       );
@@ -438,8 +397,62 @@ const renderPDF = async (chat, ego, darkMode = true, sample = false) => {
     }
   }
 
+  const pdf = doc.output("blob");
+  self.postMessage({pdf});
+  // self.postMessage({rendering});
+});
 
-  doc.save("sample.pdf");
+const getAttachment = async(fileName, attachments) => {
+  const data = attachments.filter((file) => RegExp(".*" + fileName).test(file.name));
+  if (data.length == 0) {
+    return "attachment not found";
+  }
+  if(data[0].type != 'image/jpeg' && data[0].type != 'video/mp4')
+    return null
+  
+  // return 'success'
+  return await renderAttachment(fileName,data[0],)
 };
 
-export default renderPDF;
+async function renderAttachment(fileName,attachmentData){
+    let width, height;
+    if(attachmentData.type == "video/mp4"){
+      const blob = new Blob([new Uint8Array(attachmentData.thumbnailData)],{type: 'image/png'})
+      const bitmap = await createImageBitmap(blob)
+      width = bitmap.width
+      height = bitmap.height
+      return { 
+        mimeTypedata : 'image/png',
+        src : attachmentData.thumbnailData,
+        fileName,
+        width,
+        height
+    }
+    }
+    if(attachmentData.decompressedData){
+        const blob = new Blob([new Uint8Array(attachmentData.decompressedData)],{type: attachmentData.type})
+        const bitmap = await createImageBitmap(blob)
+        width = bitmap.width
+        height = bitmap.height
+        return { 
+          mimeTypedata : attachmentData.type,
+          src : attachmentData.decompressedData,
+          fileName,
+          width,
+          height
+      }
+    }
+ 
+}
+
+
+function getDateString(date, includeTime = true) {
+  if (date) {
+    if (includeTime === true) {
+      return moment(date).format("MMMM Do YYYY h:mm");
+    } else {
+      return moment(date).format("dddd, MMMM Do YYYY");
+    }
+  }
+  return "";
+}

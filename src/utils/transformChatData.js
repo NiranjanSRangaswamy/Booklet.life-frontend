@@ -1,4 +1,5 @@
 import { chatColors, hexToRgbA } from "./colors";
+import * as pako from 'pako';
 
 export class Chat {
   constructor(chatObject = [], groupAfter = 9, maxWordsWordCloud = 150) {
@@ -19,8 +20,7 @@ export class Chat {
     this.funFacts = this.getFunFacts();
     this.statistics = Chat.getStatistics(this.filteredChatObject, this.numPersonsInChat -1);
   }
-
-  static getMediaTypes(attachments, totalMessages) {
+  static async getMediaTypes(attachments, totalMessages) {
     const mediaTypes = {
       totalMessages,
       images: 0,
@@ -28,36 +28,120 @@ export class Chat {
       video: 0,
       documents: 0,
     };
-
+  
     const typeMappings = {
       image: ["jpeg", "jpg", "png", "gif", "svg", "webp"],
       video: ["mp4", "avi", "mkv", "webm", "3gp", "mpeg"],
       audio: ["mp3", "aac", "wav", "ogg", "m4a", "opus"],
     };
-
-    attachments.forEach((attachment) => {
+  
+    const thumbnailPromises = attachments.map(async (attachment) => {
       const ext = attachment.name.split(".").pop().toLowerCase();
-      if (!ext) return;
-
-      else if(typeMappings.image.includes(ext)){
+      if (typeMappings.image.includes(ext)) {
         mediaTypes.images++;
-        attachment.type = "image/jpeg"
-      }
-      else if(typeMappings.audio.includes(ext)){
-        mediaTypes.audio++
-        attachment.type = "audio/mpeg"
-      }
-      else if(typeMappings.video.includes(ext)){
-        mediaTypes.video++
-        attachment.type = "video/mp4"
-      }
-      else{
-        mediaTypes.documents++
-        attachment.type = "others"
+        attachment.type = "image/jpeg";
+        attachment.decompressedData = Chat.inflate(attachment);
+      } else if (typeMappings.audio.includes(ext)) {
+        mediaTypes.audio++;
+        attachment.type = "audio/mpeg";
+        attachment.decompressedData = null;
+      } else if (typeMappings.video.includes(ext)) {
+        attachment.type = "video/mp4";
+        mediaTypes.video++;
+        attachment.thumbnailData = await Chat.generateThumbnailForVideo(attachment);  
+
+      } else {
+        attachment.type = "others";
+        mediaTypes.documents++;
+        attachment.decompressedData = null;
       }
     });
-
+  
+    await Promise.all(thumbnailPromises);
+  
     return { media: mediaTypes, attachments };
+  }
+  
+
+  static async generateThumbnailForVideo(attachment) {
+    const decompressedData = Chat.inflate(attachment);
+    const blob = new Blob([decompressedData], { type: attachment.type });
+    const videoUrl = URL.createObjectURL(blob);
+  
+    // Await the thumbnail creation and return it
+    const thumbnailData = await Chat.createThumbnail(videoUrl);
+    return thumbnailData;
+  }
+  
+
+  static createThumbnail(videoUrl) {
+    return new Promise((resolve) => {
+      const videoElement = document.createElement("video");
+      videoElement.src = videoUrl;
+  
+      videoElement.addEventListener("loadeddata", () => {
+        videoElement.currentTime = 0; // Capture a frame at 2 seconds
+      });
+  
+      videoElement.addEventListener("seeked", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+  
+        const context = canvas.getContext("2d");
+        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+  
+        // Draw the play button
+        const playButtonSize = Math.min(canvas.width, canvas.height) / 12;
+        const playButtonX = (canvas.width - playButtonSize) / 2;
+        const playButtonY = (canvas.height - playButtonSize) / 2;
+  
+        context.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black circle
+        context.beginPath();
+        context.arc(
+          canvas.width / 2,
+          canvas.height / 2,
+          playButtonSize,
+          0,
+          Math.PI * 2
+        );
+        context.fill();
+  
+        context.fillStyle = "white"; // White play icon
+        context.beginPath();
+        context.moveTo(playButtonX, playButtonY);
+        context.lineTo(playButtonX + playButtonSize, playButtonY + playButtonSize / 2);
+        context.lineTo(playButtonX, playButtonY + playButtonSize);
+        context.closePath();
+        context.fill();
+  
+        canvas.toBlob(async (blob) => {
+          const arrayBuffer = await blob.arrayBuffer();
+          const thumbnailData = new Uint8Array(arrayBuffer);
+          resolve(thumbnailData); // Return the thumbnail data with play button
+        }, "image/png");
+      });
+    });
+  }
+  
+
+  static inflate(data) {
+    const inflater = new pako.Inflate({ raw: true });
+    const chunkSize = 1024;
+    let offset = 0;
+    const compressedData = data.compressedContent;
+    while (offset < compressedData.length) {
+      const end = Math.min(offset + chunkSize, compressedData.length);
+      const chunk = compressedData.subarray(offset, end);
+      inflater.push(chunk);
+      offset = end;
+    }
+    if (inflater.err) {
+      throw Error(`Error inflating data: ${inflater.msg}`);
+    } else {
+      const decompressedData = inflater.result;
+      return decompressedData;
+    }
   }
 
   static removeSystemMessages(chatObject) {
@@ -70,6 +154,7 @@ export class Chat {
         message.message !== "<Media omitted>"
     );
   }
+
   static groupBy(chatObject, key) {
     return chatObject.reduce((acc, item) => {
       (acc[item[key]] = acc[item[key]] || []).push(item);
@@ -233,4 +318,28 @@ export class Chat {
       };
     });
   }
+
 }
+
+async function prepareChatObject(chatObject) {
+  const chat = new Chat(chatObject);
+  const mediaData =await chat.media;
+
+  // Generate thumbnails for videos
+  const thumbnailPromises = mediaData.attachments.map(async (attachment) => {
+    try {
+      if (attachment.type.startsWith("video/")) {
+        attachment.decompressedData = attachment.decompressedData;  // Await the thumbnail
+
+      }
+      
+    } catch (error) {
+    }
+  })
+
+  await Promise.all(thumbnailPromises); 
+
+  return chat;
+}
+
+export {prepareChatObject}

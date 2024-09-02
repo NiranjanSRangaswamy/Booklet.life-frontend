@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import UserContext from "../utils/UserContext";
-import { getAttachment } from "../utils/procesAttachments";
+import { getAttachment } from "../utils/processAttachments";
 import { IoIosPlay } from "react-icons/io";
 import { IoIosDocument } from "react-icons/io";
 import { IoPlayCircleOutline } from "react-icons/io5";
@@ -12,7 +12,7 @@ const ChatDisplay = ({ ego, color, mode}) => {
 
   useEffect(() => {
     if (chat) {
-      setSample(chat.filteredChatObject.slice(0, 40));
+      setSample(chat.filteredChatObject.slice(0, 100));
       setAttachments(chat.media.attachments);
     }
   }, [chat]);
@@ -88,7 +88,6 @@ const ChatDisplay = ({ ego, color, mode}) => {
         </div>
       )
     }
-    return null;
   };
 
   return (

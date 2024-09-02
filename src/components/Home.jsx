@@ -2,17 +2,14 @@ import React,{ useContext, useEffect, useState } from "react";
 import Navbar from "./Navbar.jsx"
 import JSZip from "jszip";
 import { parseString } from "whatsapp-chat-parser";
-import {Chat} from '../utils/transformChatData.js'
 import { useNavigate } from "react-router-dom";
+import { prepareChatObject } from "../utils/transformChatData.js"; 
 import UserContext from '../utils/UserContext.js';
 
 
 const Home = (props) => {
   const {chat,setChat} = useContext(UserContext)
   const [file,setFile] = useState(null)
-  const [totalAnalyzed,setTotalAnalyzed] = useState(12345)
-  const [totalUser,setTotalUser] = useState(12345)
-  const [todayAnalyzed,setTodayAnalyzed] = useState(12345)
 
   const navigate = useNavigate()
 
@@ -22,11 +19,11 @@ const Home = (props) => {
 
   const handleSubmit=async(e)=>{
     e.preventDefault()
-    processFileList(file)
-    navigate('/chart')
+     processFileList(file)
+     navigate('/chart')
   }
 
-  const processFileList = (file) => {
+  const processFileList = (file) =>    {
 
     if (!file) return 'File is not selected'
     const reader = new FileReader();
@@ -45,20 +42,25 @@ const Home = (props) => {
     const arrayBuffer = e.target.result;
     const zip = await JSZip.loadAsync(arrayBuffer); 
   
-    const chatFile = await getChatFile(zip);
-    const messages = await parseString(chatFile, { parseAttachments: true });
-    updateMessages({
-      messages,
-      attachments: Object.values(zip.files).map((file) => ({
-        name: file.name,
-        compressedContent: file._data.compressedContent,
-      })),
-    });
+    try {
+      const chatFile = await getChatFile(zip);
+      const messages = await parseString(chatFile, { parseAttachments: true });
+      updateMessages({
+        messages,
+        attachments: Object.values(zip.files).map((file) => ({
+          name: file.name,
+          compressedContent: file._data.compressedContent,
+        })),
+      });
+    } catch (error) {
+      alert('Wrong file')
+      navigate('/')
+    }
+
   };
   
   const txtLoadEndHandler = (e) => {
     const messages = parseString(e.target.result);
-    console.log(messages)
     updateMessages({ messages: messages });
   };
 
@@ -80,15 +82,16 @@ const Home = (props) => {
   const getChatFile = async (zipData) => {
     const chatFile = zipData.file("_chat.txt");
     if (chatFile) return await chatFile.async("string");
-    return zipData
-      .file(/.*(?:chat|whatsapp).*\.txt$/i)
-      .sort((a, b) => a.name.length - b.name.length)[0]
-      .async("string");
+      return zipData
+        .file(/.*(?:chat|whatsapp).*\.txt$/i)
+        .sort((a, b) => a.name.length - b.name.length)[0]
+        .async("string");
   };
 
-  function newMessages(chatObject){
+async function newMessages(chatObject){
     if (!chatObject.default || this.chat === undefined) {
-      const data = new Chat(chatObject)
+      const data =  await prepareChatObject(chatObject);
+      data.media =await data.media;
       setChat(data)
     }
   }
@@ -108,22 +111,6 @@ const Home = (props) => {
             <input type="submit" value="Get Started" id="file-submit"  className="mx-2 rounded-sm py-1 px-2"/>
           </div>
         </form>
-        <div className="stats flex justify-between my-2">
-          <div id="total-analyzed" className="min-content flex flex-col items-center ">
-            <h1>{totalAnalyzed}</h1>
-            <h6 className="md:text-sm">Total Analyzed</h6>
-          </div>
-          <div className="line"></div>
-          <div id="total-user" className="min-content flex flex-col items-center ">
-            <h1>{totalUser}</h1>
-            <h6 className="md:text-sm">Total User</h6>
-          </div>
-          <div className="line"></div>
-          <div id="today-analyzed" className="min-content flex flex-col items-center">
-            <h1>{todayAnalyzed}</h1>
-            <h6 className="md:text-sm">Today Analyzed</h6>
-          </div>
-        </div>
       </div>
     </section>
   );

@@ -1,10 +1,10 @@
 :root {
   --light-mode: #f5f5dc;
   --dark-mode: #09141a;
-  --dark-green: #134d37;
+  --dark-green: #15533b;
+  --darker-green:#134333;
   --dark-grey: #1F2C34;
   --darker-grey:#1a2027;
-  --darker-green:#134333;
   /* --light-green: #d5f3cf; */
   --light-green: #D9FDD3;
   --lighter-green: #9cfab0;
@@ -12,7 +12,6 @@
   --lighter-others: #f0f0f0;
   
 }
-
 .analytics {
   background-color: #128c7e;
 }
